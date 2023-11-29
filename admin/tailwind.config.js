@@ -1,10 +1,20 @@
 /** @type {import('tailwindcss').Config} */
 
 /*eslint-env node*/
-module.exports = {
-    content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-    theme: {
-        extend: {}
+export const content = ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"];
+export const theme = {
+    colors: {
+        transparent: "transparent",
+        current: "currentColor",
+        white: "#ffffff",
+        black: "#000",
+        background: "#242529",
+        active: "#fdecdd",
+        normal: "#908883",
+        activeBg: "#353537",
+        primary: "#d96c2c",
+        border: "#65605f"
     },
-    plugins: []
+    extend: {}
 };
+export const plugins = [];

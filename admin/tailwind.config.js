@@ -12,7 +12,7 @@ export const theme = {
         active: "#fdecdd",
         normal: "#908883",
         activeBg: "#353537",
-        primary: "#d96c2c",
+        primary: "#fff27a",
         border: "#65605f"
     },
     extend: {}

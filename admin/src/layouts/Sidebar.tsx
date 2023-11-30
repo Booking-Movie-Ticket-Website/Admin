@@ -1,21 +1,27 @@
-import logo from "~/assets/logo.png";
-import user from "~/assets/user.png";
 import NavItem from "~/components/NavItem";
-import { ActivityIc, DashboardIc, MovieIc, UsersIc } from "~/icons/icons";
+import { ActivityIc, DashboardIc, MovieIc, SignOutIc, UsersIc } from "~/icons/icons";
 import { theme } from "../../tailwind.config";
+import Button from "~/components/Button";
+import admin from "~/assets/admin.png";
+import logo from "~/assets/logo.png";
 
 function Sidebar() {
     return (
-        <div className="w-[260px] bg-background absolute top-0 bottom-0 flex flex-col py-10">
-            <div className="flex items-center justify-center mb-8">
-                <img src={logo} className="w-40" alt="logo" />
+        <div className="w-[260px] bg-background absolute top-0 bottom-0 flex flex-col pb-10 pt-6 border-r-[1px] border-r-solid border-r-border pl-[40px] pr-[32px]">
+            <div className="flex items-center justify-center">
+                <img src={logo} className="w-40 mb-8" alt="logo" />
             </div>
             <div className="flex flex-col justify-center items-center">
-                <img src={user} className="w-12 mb-2" />
-                <p className="text-active text-sm mb-2">Anh Tran</p>
-                <button className="border-border text-active text-xs border py-1 px-3 rounded-2xl">Sign out</button>
+                <img src={admin} width={80} alt="admin" className="mb-4" />
+                <p className="text-active text-md">Anh Tran</p>
+                <p className="text-normal text-sm mb-4">anhtran@gmail.com</p>
+                <Button
+                    fill={false}
+                    children={<SignOutIc width={24} height={24} color={theme.colors.active} />}
+                    fontSize="sm"
+                />
             </div>
-            <div className="flex flex-col p-[32px] gap-2">
+            <div className="flex flex-col py-[32px] gap-2">
                 <NavItem
                     icon={<DashboardIc width={24} height={24} color={theme.colors.active} />}
                     title="Dashboard"

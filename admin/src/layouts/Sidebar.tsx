@@ -7,7 +7,7 @@ import logo from "~/assets/logo.png";
 
 function Sidebar() {
     return (
-        <div className="w-[260px] bg-background absolute top-0 bottom-0 flex flex-col pb-10 pt-6 border-r-[1px] border-r-solid border-r-border pl-[40px] pr-[32px]">
+        <div className="w-[260px] bg-background fixed top-0 bottom-0 flex flex-col pb-10 pt-6 border-r-[1px] border-r-solid border-r-border pl-[40px] pr-[32px]">
             <div className="flex items-center justify-center">
                 <img src={logo} className="w-40 mb-8" alt="logo" />
             </div>
@@ -17,7 +17,11 @@ function Sidebar() {
                 <p className="text-normal text-sm mb-4">anhtran@gmail.com</p>
                 <Button
                     fill={false}
-                    children={<SignOutIc width={24} height={24} color={theme.colors.active} />}
+                    children={
+                        <div className="flex gap-1 items-center">
+                            Log out <SignOutIc width={24} height={24} color={theme.colors.active} />
+                        </div>
+                    }
                     fontSize="sm"
                 />
             </div>
@@ -26,10 +30,23 @@ function Sidebar() {
                     icon={<DashboardIc width={24} height={24} color={theme.colors.active} />}
                     title="Dashboard"
                     active={true}
+                    href="/"
                 />
-                <NavItem icon={<ActivityIc width={24} height={24} color={theme.colors.active} />} title="Activity" />
-                <NavItem icon={<MovieIc width={24} height={24} color={theme.colors.active} />} title="Movies" />
-                <NavItem icon={<UsersIc width={24} height={24} color={theme.colors.active} />} title="Users" />
+                <NavItem
+                    icon={<ActivityIc width={24} height={24} color={theme.colors.active} />}
+                    title="Activity"
+                    href="/activity"
+                />
+                <NavItem
+                    icon={<MovieIc width={24} height={24} color={theme.colors.active} />}
+                    title="Movies"
+                    href="/movies"
+                />
+                <NavItem
+                    icon={<UsersIc width={24} height={24} color={theme.colors.active} />}
+                    title="Users"
+                    href="/users"
+                />
             </div>
         </div>
     );

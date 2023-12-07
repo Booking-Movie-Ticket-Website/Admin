@@ -7,13 +7,14 @@ export const theme = {
         transparent: "transparent",
         current: "currentColor",
         white: "#ffffff",
-        black: "#000",
+        black: "#242529",
         background: "#242529",
         active: "#fdecdd",
         normal: "#908883",
         activeBg: "#353537",
         primary: "#fff27a",
-        border: "#65605f"
+        border: "#65605f",
+        gray: "#b1acab"
     },
     extend: {}
 };

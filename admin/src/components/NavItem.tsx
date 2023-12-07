@@ -4,19 +4,20 @@ interface Props {
     icon: React.ReactNode;
     title: string;
     active?: boolean;
+    href: string;
 }
 
-const NavItem: React.FC<Props> = ({ icon, title, active = false }) => {
+const NavItem: React.FC<Props> = ({ icon, title, active = false, href }) => {
     return active ? (
-        <nav className="flex p-4 bg-activeBg rounded-[12px]">
+        <a className="flex p-4 bg-activeBg rounded-[12px]" href={href}>
             <i className="pr-2">{icon}</i>
             <span className="text-active font-light">{title}</span>
-        </nav>
+        </a>
     ) : (
-        <nav className="group flex p-4 rounded-[12px] hover:bg-activeBg">
+        <a className="group flex p-4 rounded-[12px] hover:bg-activeBg" href={href}>
             <i className="pr-2">{icon}</i>
             <span className="text-normal group-hover:text-active font-light">{title}</span>
-        </nav>
+        </a>
     );
 };
 

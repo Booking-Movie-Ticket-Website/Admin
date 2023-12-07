@@ -137,21 +137,14 @@ export const SearchIc: React.FC<Props> = ({ width, height, color }) => {
 
 export const SignOutIc: React.FC<Props> = ({ width, height, color }) => {
     return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 256 256"
-            width={width}
-            height={height}
-            fill="none"
-            id="sign-out"
-        >
-            <rect width={256} height={256} fill={color}></rect>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width={width} height={height} id="sign-out">
+            <rect width="256" height="256" fill="none"></rect>
             <polyline
-                fill={color}
-                stroke="#000"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="12"
+                fill="none"
+                stroke={color}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="12"
                 points="174.011 86 216 128 174.011 170"
             ></polyline>
             <line
@@ -159,18 +152,18 @@ export const SignOutIc: React.FC<Props> = ({ width, height, color }) => {
                 x2="215.971"
                 y1="128"
                 y2="128"
-                fill={color}
-                stroke="#000"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="12"
+                fill="none"
+                stroke={color}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="12"
             ></line>
             <path
-                fill={color}
-                stroke="#000"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="12"
+                fill="none"
+                stroke={color}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="12"
                 d="M104,216H48a8,8,0,0,1-8-8V48a8,8,0,0,1,8-8h56"
             ></path>
         </svg>

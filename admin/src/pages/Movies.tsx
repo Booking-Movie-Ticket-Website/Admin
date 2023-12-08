@@ -23,19 +23,22 @@ function Movies() {
     console.log(data);
     return (
         data && (
-            <div className="bg-background">
-                <div className="my-[130px] ml-[300px] mr-[40px]">
-                    <ul className="w-full flex flex-wrap gap-6">
-                        {data.map((movie: Movie) => (
-                            <MovieItem
-                                key={movie.id}
-                                name={movie.name}
-                                director={movie.director}
-                                img={movie.moviePosters[0].link}
-                            />
-                        ))}
-                    </ul>
+            <div className="bg-block p-6 rounded-xl shadow-xl">
+                <div className="flex justify-between items-center pb-6">
+                    <div className="text-xl font-medium">All Movies</div>
+                    <div className=""></div>
                 </div>
+                <ul className="w-full flex flex-wrap gap-6">
+                    {data.map((movie: Movie) => (
+                        <MovieItem
+                            id={movie.id}
+                            key={movie.id}
+                            name={movie.name}
+                            director={movie.director}
+                            img={movie.moviePosters[0].link}
+                        />
+                    ))}
+                </ul>
             </div>
         )
     );

@@ -7,7 +7,7 @@ function Layout() {
         <div className="flex flex-row">
             <Header />
             <Sidebar />
-            <div className="absolute bg-background bottom-0 top-[90px]">
+            <div className="bg-background w-full pl-[240px] pt-[74px] pb-[90px]">
                 <Outlet />
             </div>
         </div>

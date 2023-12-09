@@ -15,7 +15,7 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id }) => {
                     <img
                         src={img}
                         alt="movie poster"
-                        className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300"
+                        className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
                     />
                 </div>
             </a>
@@ -23,7 +23,7 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id }) => {
                 <a className="text-lg hover:text-blue" href={`/movies/${id}`}>
                     {name}
                 </a>
-                <div className="text-xs">Director: {director}</div>
+                <div className="text-sm">Director: {director}</div>
             </div>
         </li>
     );

@@ -1,46 +1,45 @@
-import { useState, useEffect } from "react";
-import axios from "~/utils/axios";
-import MovieItem from "~/components/MovieItem";
-
-interface Movie {
-    id: number;
-    name: string;
-    director: string;
-    moviePosters: Array<{ id: number; link: string }>;
-}
+import MoviesList from "~/components/MoviesList";
+import Tippy from "@tippyjs/react/headless";
+import "tippy.js/dist/tippy.css";
+import { useState } from "react";
 
 function Movies() {
-    const [data, setData] = useState([]);
+    const [visible, setVisible] = useState(false);
 
-    useEffect(() => {
-        (async () => {
-            await axios
-                .get("/movies?page=1&take=10", { headers: { "Content-Type": "application/json" } })
-                .then((response) => setData(response.data))
-                .catch((error) => console.error(error));
-        })();
-    }, []);
-    console.log(data);
     return (
-        data && (
-            <div className="bg-block p-6 rounded-xl shadow-xl">
-                <div className="flex justify-between items-center pb-6">
-                    <div className="text-xl font-medium">All Movies</div>
-                    <div className=""></div>
-                </div>
-                <ul className="w-full flex flex-wrap gap-6">
-                    {data.map((movie: Movie) => (
-                        <MovieItem
-                            id={movie.id}
-                            key={movie.id}
-                            name={movie.name}
-                            director={movie.director}
-                            img={movie.moviePosters[0].link}
-                        />
-                    ))}
-                </ul>
-            </div>
-        )
+        <div className="p-8">
+            <Tippy
+                visible={visible}
+                interactive
+                onClickOutside={() => setVisible(false)}
+                render={(attrs) => (
+                    <ul
+                        {...attrs}
+                        tabIndex={-1}
+                        className="flex text-disabled p-3 rounded-xl flex-col bg-background border-border border-[1px]"
+                    >
+                        <li className="py-3 px-5 hover:bg-primary hover:text-white rounded-lg">All movies</li>
+                        <li className="py-3 px-5 hover:bg-primary hover:text-white rounded-lg">Banner movies</li>
+                        <li className="py-3 px-5 hover:bg-primary hover:text-white rounded-lg">Now playing movies</li>
+                        <li className="py-3 px-5 hover:bg-primary hover:text-white rounded-lg">Top featured movies</li>
+                        <li className="py-3 px-5 hover:bg-primary hover:text-white rounded-lg">Coming soon movies</li>
+                    </ul>
+                )}
+            >
+                <button
+                    onClick={() => setVisible(!visible)}
+                    className="hover:border-primary py-3 px-5 border-border border-[1px] rounded-xl flex justify-between"
+                >
+                    All movies
+                    <i></i>
+                </button>
+            </Tippy>
+            <MoviesList title="All" type="" />
+            <MoviesList title="Banner" type="BANNER" />
+            <MoviesList title="Now Playing" type="NOW_PLAYING" />
+            <MoviesList title="Top Featured" type="TOP_FEATURED" />
+            <MoviesList title="Coming Soon" type="COMING_SOON" />
+        </div>
     );
 }
 

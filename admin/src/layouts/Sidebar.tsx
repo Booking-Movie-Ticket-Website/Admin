@@ -7,16 +7,16 @@ function Sidebar() {
             <div className="flex items-center justify-center">
                 <img src={logo} className="w-40 mb-8" alt="logo" />
             </div>
-            <p className="pl-4 pb-2 text-blue">Admin tools</p>
+            <p className="pl-4 pb-3 text-blue">Admin tools</p>
             <div className="flex flex-col pb-[32px] gap-2">
-                <NavLink to="/" className="flex items-center group text-disabled hover:text-white rounded-xl p-4">
+                <NavLink to="/" className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4">
                     {({ isActive }) => (
                         <>
                             <i className="flex flex-start mr-2 w-[26px] items-center h-[26px]">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    width="26"
-                                    height="26"
+                                    width="24"
+                                    height="24"
                                     fill="none"
                                     viewBox="0 0 64 64"
                                     id="dashboard"
@@ -37,7 +37,7 @@ function Sidebar() {
                 </NavLink>
                 <NavLink
                     to="/activities"
-                    className="flex items-center group text-disabled hover:text-white rounded-xl p-4"
+                    className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
                 >
                     {({ isActive }) => (
                         <>
@@ -70,46 +70,32 @@ function Sidebar() {
                         </>
                     )}
                 </NavLink>
-                <NavLink to="/movies" className="flex items-center group text-disabled hover:text-white rounded-xl p-4">
+                <NavLink
+                    to="/movies"
+                    className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
+                >
                     {({ isActive }) => (
                         <>
-                            <i className="flex flex-start mr-2 w-[26px] items-center h-[26px]">
+                            <i className="flex flex-start mr-2 w-[26px] items-center h-[26px] justify-center">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    width="26"
-                                    height="26"
-                                    fill="none"
-                                    viewBox="0 0 26 26"
-                                    id="reel"
+                                    data-name="Layer 1"
+                                    viewBox="0 0 32 32"
+                                    width={22}
+                                    height={22}
+                                    id="film"
                                 >
-                                    <rect
-                                        width="20"
-                                        height="20"
-                                        x="2"
-                                        y="2"
-                                        className={`${
-                                            isActive ? "stroke-white" : "stroke-disabled"
-                                        } group-hover:stroke-white`}
-                                        strokeLinejoin="round"
-                                        strokeWidth={1.5}
-                                        rx="4"
-                                    ></rect>
                                     <path
-                                        strokeWidth={1.5}
                                         className={`${
-                                            isActive ? "stroke-white" : "stroke-disabled"
-                                        } group-hover:stroke-white`}
-                                        strokeLinejoin="round"
-                                        d="M9 11.809C9 11.3622 9.36221 11 9.80902 11V11C9.93461 11 10.0585 11.0292 10.1708 11.0854L14.5528 13.2764C14.8269 13.4134 15 13.6936 15 14V14C15 14.3064 14.8269 14.5866 14.5528 14.7236L10.1708 16.9146C10.0585 16.9708 9.93461 17 9.80902 17V17C9.36221 17 9 16.6378 9 16.191V11.809Z"
+                                            isActive ? "fill-white" : "fill-disabled"
+                                        } group-hover:fill-white`}
+                                        d="M9 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm14 2a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0-6a2 2 0 1 1-2 2 2 2 0 0 1 2-2zm-3 9a4 4 0 1 0-4 4 4 4 0 0 0 4-4zm-6 0a2 2 0 1 1 2 2 2 2 0 0 1-2-2zm2-10a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0-6a2 2 0 1 1-2 2 2 2 0 0 1 2-2z"
                                     ></path>
                                     <path
-                                        strokeWidth={1.5}
                                         className={`${
-                                            isActive ? "stroke-white" : "stroke-disabled"
-                                        } group-hover:stroke-white`}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M2 8H22M8 8L10 2M14 8L16 2"
+                                            isActive ? "fill-white" : "fill-disabled"
+                                        } group-hover:fill-white`}
+                                        d="M31 30h-7.272A15.986 15.986 0 1 0 16 32h15a1 1 0 0 0 0-2ZM2 16a14 14 0 1 1 14 14A14.015 14.015 0 0 1 2 16Z"
                                     ></path>
                                 </svg>
                             </i>
@@ -117,7 +103,10 @@ function Sidebar() {
                         </>
                     )}
                 </NavLink>
-                <NavLink to="/users" className="flex items-center group text-disabled hover:text-white rounded-xl p-4">
+                <NavLink
+                    to="/users"
+                    className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
+                >
                     {({ isActive }) => (
                         <>
                             <i className="flex flex-start mr-2 w-[26px] items-center h-[26px]">
@@ -128,7 +117,7 @@ function Sidebar() {
                                     height={26}
                                     id="users"
                                 >
-                                    <rect width="26" height="26" fill="none"></rect>
+                                    <rect width="24" height="24" fill="none"></rect>
                                     <circle
                                         cx="88"
                                         cy="108"
@@ -157,7 +146,10 @@ function Sidebar() {
                         </>
                     )}
                 </NavLink>
-                <NavLink to="/news" className="flex items-center group text-disabled hover:text-white rounded-xl p-4">
+                <NavLink
+                    to="/news"
+                    className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
+                >
                     {({ isActive }) => (
                         <>
                             <i className="flex flex-start mr-2 w-[26px] items-center h-[26px]">
@@ -192,7 +184,7 @@ function Sidebar() {
                 </NavLink>
                 <NavLink
                     to="/reviews"
-                    className="flex items-center group text-disabled hover:text-white rounded-xl p-4"
+                    className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
                 >
                     {({ isActive }) => (
                         <>
@@ -206,15 +198,17 @@ function Sidebar() {
                                     height={24}
                                 >
                                     <path
+                                        strokeWidth={3}
                                         className={`${
-                                            isActive ? "fill-white" : "fill-disabled"
-                                        } group-hover:fill-white`}
+                                            isActive ? "fill-white stroke-white" : "fill-disabled stroke-disabled"
+                                        } group-hover:fill-white group-hover:stroke-white`}
                                         d="M86.28,11.35H13.72A10.73,10.73,0,0,0,3,22.07v39.5A10.73,10.73,0,0,0,13.72,72.29H36.16l12.7,15.79a1.51,1.51,0,0,0,1.18.57h0a1.5,1.5,0,0,0,1.18-.57L63.84,72.29H86.28A10.73,10.73,0,0,0,97,61.57V22.07A10.73,10.73,0,0,0,86.28,11.35ZM94,61.57a7.72,7.72,0,0,1-7.7,7.7H63.11a1.53,1.53,0,0,0-1.18.56L50,84.72l-12-14.89a1.52,1.52,0,0,0-1.18-.56H13.72A7.72,7.72,0,0,1,6,61.57V22.07a7.72,7.72,0,0,1,7.7-7.7H86.28a7.72,7.72,0,0,1,7.7,7.7Z"
                                     />
                                     <path
+                                        strokeWidth={3}
                                         className={`${
-                                            isActive ? "fill-white" : "fill-disabled"
-                                        } group-hover:fill-white`}
+                                            isActive ? "fill-white stroke-white" : "fill-disabled stroke-disabled"
+                                        } group-hover:fill-white group-hover:stroke-white`}
                                         d="M58.27,25.9A13.34,13.34,0,0,0,50,28.76a13.39,13.39,0,0,0-17.94,19.8L50,66.67,68,48.56l0,0a13.4,13.4,0,0,0-9.7-22.64Zm7.52,20.54L50,62.38,34.23,46.45a10.26,10.26,0,0,1-2.88-7.16A10.37,10.37,0,0,1,48.8,31.71l1.37,1.36,1-1.3a10.28,10.28,0,0,1,7.12-2.85,10.37,10.37,0,0,1,7.52,17.52Z"
                                     />
                                 </svg>
@@ -225,7 +219,7 @@ function Sidebar() {
                 </NavLink>
                 <NavLink
                     to="/theaters"
-                    className="flex items-center group text-disabled hover:text-white rounded-xl p-4"
+                    className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
                 >
                     {({ isActive }) => (
                         <>
@@ -250,7 +244,10 @@ function Sidebar() {
                         </>
                     )}
                 </NavLink>
-                <NavLink to="/seats" className="flex items-center group text-disabled hover:text-white rounded-xl p-4">
+                <NavLink
+                    to="/seats"
+                    className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
+                >
                     {({ isActive }) => (
                         <>
                             <i className="flex flex-start mr-2 w-[26px] items-center h-[26px]">

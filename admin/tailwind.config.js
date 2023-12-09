@@ -12,12 +12,13 @@ export const theme = {
         white: "#ffffff",
         black: "#000",
         background: "#242531",
-        activeBg: "#8d7cdd",
+        background_80: "rgba(36,37,49,0.8)",
         primary: "#8d7cdd",
         disabled: "#7f7f8e",
         blue: "#57c3e3",
         border: "#373845",
-        block: "#262a38"
+        block: "#262a38",
+        red: "#e69473"
     },
     extend: {}
 };

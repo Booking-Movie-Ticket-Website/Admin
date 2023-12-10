@@ -20,7 +20,7 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id }) => {
                 </div>
             </a>
             <div className="pt-2">
-                <a className="text-lg hover:text-blue" href={`/movies/${id}`}>
+                <a className="text-lg hover:text-primary text-blue" href={`/movies/${id}`}>
                     {name}
                 </a>
                 <div className="text-sm">Director: {director}</div>

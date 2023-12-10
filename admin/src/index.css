@@ -5,3 +5,11 @@
 .active {
     @apply bg-primary text-white pointer-events-none;
 }
+
+.tippy-box {
+    @apply border !bg-background !text-xs border-primary p-1 !rounded-lg font-montserrat;
+}
+
+.tippy-box[data-placement^="top"] > .tippy-arrow:before {
+    @apply !border-t-primary !bottom-[-8px];
+}

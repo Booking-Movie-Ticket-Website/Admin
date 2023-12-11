@@ -1,8 +1,17 @@
+import { AxiosResponse } from "axios";
 import { SET_MESSAGE, CLEAR_MESSAGE } from "../actions/types";
 
 const initialState = {};
 
-export default function (state = initialState, action) {
+export default function (
+    state = initialState,
+    action: {
+        type: string;
+        payload: {
+            user: AxiosResponse;
+        };
+    }
+) {
     const { type, payload } = action;
 
     switch (type) {

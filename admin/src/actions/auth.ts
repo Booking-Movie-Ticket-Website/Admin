@@ -1,62 +1,8 @@
-import { REGISTER_SUCCESS, REGISTER_FAIL, LOGIN_SUCCESS, LOGIN_FAIL, LOGOUT, SET_MESSAGE } from "./types";
-
+import { LOGIN_SUCCESS, LOGIN_FAIL, LOGOUT, SET_MESSAGE } from "./types";
 import AuthService from "../services/auth.service";
+import { Dispatch } from "redux";
 
-export const register =
-    (
-        email: string,
-        password: string,
-        firstName: string,
-        lastName: string,
-        gender: string,
-        phoneNumber: string,
-        address: string,
-        dateOfBirth: string
-    ) =>
-    (dispatch) => {
-        return AuthService.register(
-            email,
-            password,
-            firstName,
-            lastName,
-            gender,
-            phoneNumber,
-            address,
-            dateOfBirth
-        ).then(
-            (response) => {
-                dispatch({
-                    type: REGISTER_SUCCESS
-                });
-
-                dispatch({
-                    type: SET_MESSAGE,
-                    payload: response.data.message
-                });
-
-                return Promise.resolve();
-            },
-            (error) => {
-                const message =
-                    (error.response && error.response.data && error.response.data.message) ||
-                    error.message ||
-                    error.toString();
-
-                dispatch({
-                    type: REGISTER_FAIL
-                });
-
-                dispatch({
-                    type: SET_MESSAGE,
-                    payload: message
-                });
-
-                return Promise.reject();
-            }
-        );
-    };
-
-export const login = (email: string, password: string) => (dispatch) => {
+export const login = (email: string, password: string) => (dispatch: Dispatch) => {
     return AuthService.login(email, password).then(
         (data) => {
             dispatch({
@@ -86,7 +32,7 @@ export const login = (email: string, password: string) => (dispatch) => {
     );
 };
 
-export const logout = () => (dispatch) => {
+export const logout = () => (dispatch: Dispatch) => {
     AuthService.logout();
 
     dispatch({

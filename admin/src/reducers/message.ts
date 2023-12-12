@@ -1,17 +1,19 @@
-import { AxiosResponse } from "axios";
 import { SET_MESSAGE, CLEAR_MESSAGE } from "../actions/types";
 
-const initialState = {};
+interface MessageState {
+    message: string | null;
+}
 
-export default function (
-    state = initialState,
-    action: {
-        type: string;
-        payload: {
-            user: AxiosResponse;
-        };
-    }
-) {
+interface Action {
+    type: string;
+    payload: string | null;
+}
+
+const initialState: MessageState = {
+    message: null
+};
+
+export default function (state = initialState, action: Action): MessageState {
     const { type, payload } = action;
 
     switch (type) {

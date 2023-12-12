@@ -1,19 +1,23 @@
-import { AxiosResponse } from "axios";
 import { LOGIN_SUCCESS, LOGIN_FAIL, LOGOUT } from "../actions/types";
+import { AxiosResponse } from "axios";
+
+interface UserState {
+    isLoggedIn: boolean;
+    user: AxiosResponse | null;
+}
+
+interface Action {
+    type: string;
+    payload: {
+        user: AxiosResponse | null;
+    };
+}
 
 const user = JSON.parse(localStorage.getItem("user")!);
 
-const initialState = user ? { isLoggedIn: true, user } : { isLoggedIn: false, user: null };
+const initialState: UserState = user ? { isLoggedIn: true, user } : { isLoggedIn: false, user: null };
 
-export default function (
-    state = initialState,
-    action: {
-        type: string;
-        payload: {
-            user: AxiosResponse;
-        };
-    }
-) {
+export default function (state = initialState, action: Action) {
     const { type, payload } = action;
 
     switch (type) {
@@ -24,11 +28,6 @@ export default function (
                 user: payload.user
             };
         case LOGIN_FAIL:
-            return {
-                ...state,
-                isLoggedIn: false,
-                user: null
-            };
         case LOGOUT:
             return {
                 ...state,

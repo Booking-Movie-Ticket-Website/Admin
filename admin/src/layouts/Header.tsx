@@ -1,8 +1,18 @@
 import adminLogo from "~/assets/admin_logo.jpg";
 import { useState, useEffect } from "react";
+import Tippy from "@tippyjs/react/headless";
+import { useCallback } from "react";
+import { useAppDispatch } from "~/hook";
+import { logout } from "~/actions/auth";
 
 function Header() {
     const [scrollTop, setScrollTop] = useState(0);
+    const [visible, setVisible] = useState(false);
+    const dispatch = useAppDispatch();
+
+    const logOut = useCallback(() => {
+        dispatch(logout());
+    }, [dispatch]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -133,11 +143,76 @@ function Header() {
                         3
                     </span>
                 </i>
-                <div className="ml-2 rounded-full">
-                    <img src={adminLogo} alt="avatar" width={42} height={42} className="rounded-full" />
-                </div>
+                <Tippy
+                    visible={visible}
+                    interactive
+                    offset={[-98, 5]}
+                    onClickOutside={() => setVisible(false)}
+                    render={(attrs) => (
+                        <ul
+                            {...attrs}
+                            className="flex flex-col p-3 bg-background border border-primary rounded-xl gap-2 shadow-lg"
+                        >
+                            <li className="flex gap-4 items-center p-2">
+                                <img src={adminLogo} alt="avatar" width={64} height={64} className="rounded-full" />
+                                <div className="">
+                                    <p className="mb">Anh Tran</p>
+                                    <p className="text-xs text-disabled mb-2">admin@gmail.com</p>
+                                    <div className="px-2 py-1 bg-primary inline rounded-full text-xs">Admin</div>
+                                </div>
+                            </li>
+                            <li className="w-full border-b border-border mb-1"></li>
+                            <li className="p-2 hover:bg-primary rounded-lg">
+                                <button onClick={logOut} className="flex items-center w-full">
+                                    <i className="mr-2">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 256 256"
+                                            width={24}
+                                            height={24}
+                                            id="sign-out"
+                                        >
+                                            <rect width="256" height="256" fill="none"></rect>
+                                            <polyline
+                                                fill="none"
+                                                stroke="#fff"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="16"
+                                                points="174.011 86 216 128 174.011 170"
+                                            ></polyline>
+                                            <line
+                                                x1="104"
+                                                x2="215.971"
+                                                y1="128"
+                                                y2="128"
+                                                fill="none"
+                                                stroke="#fff"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="16"
+                                            ></line>
+                                            <path
+                                                fill="none"
+                                                stroke="#fff"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="16"
+                                                d="M104,216H48a8,8,0,0,1-8-8V48a8,8,0,0,1,8-8h56"
+                                            ></path>
+                                        </svg>
+                                    </i>
+                                    Sign Out
+                                </button>
+                            </li>
+                        </ul>
+                    )}
+                >
+                    <button className="ml-2 rounded-full" onClick={() => setVisible(!visible)}>
+                        <img src={adminLogo} alt="avatar" width={42} height={42} className="rounded-full" />
+                    </button>
+                </Tippy>
             </div>
-            {/* <Button fill={false} children={<BellIc width={24} height={24} color={theme.colors.white} />} /> */}
         </header>
     );
 }

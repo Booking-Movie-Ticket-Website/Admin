@@ -4,7 +4,6 @@ import "./index.css";
 import Layout from "./layouts/Layout";
 import Movies from "./pages/Movies";
 import Movie from "./pages/Movie";
-
 import Login from "./pages/Login";
 import PrivateRoute from "./components/PrivateRoute";
 

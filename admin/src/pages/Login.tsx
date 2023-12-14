@@ -5,7 +5,7 @@ import { useState } from "react";
 import { login } from "~/actions/auth";
 import { useAppDispatch, useAppSelector } from "~/hook";
 import logo from "~/assets/logo_removebg.png";
-import bg from "~/assets/background.jpg";
+import { toast } from "react-toastify";
 
 interface LoginFormValues {
     email: string;
@@ -37,29 +37,34 @@ const LoginForm: React.FC = () => {
     const onSubmit: SubmitHandler<LoginFormValues> = () => {
         dispatch(login(email, password))
             .then(() => {
-                navigate("/");
-                window.location.reload();
+                toast("Login successfully!");
+                const timer = setTimeout(() => {
+                    navigate("/");
+                    window.location.reload();
+                }, 2000);
+                return () => clearTimeout(timer);
             })
             .catch(() => {
-                console.error("Failed to login");
+                toast("Email or password is incorrect", {
+                    autoClose: 5000
+                });
             });
     };
 
-    if (isLoggedIn) {
-        return <Navigate to="/" />;
-    }
+    // if (isLoggedIn) {
+    //     return <Navigate to="/" />;
+    // }
 
     return (
-        <div className="w-full bg-background min-h-screen flex justify-center items-center">
-            <div className="bg-block p-6 rounded-3xl flex justify-center flex-col items-center">
-                <div className="flex flex-col justify-center items-center gap-4">
+        <div className="w-full min-h-screen flex justify-center items-center bg-[url('~/assets/background.jpg')] bg-cover">
+            <div className="bg-transparent border border-blue shadow-md p-8 w-[480px] rounded-3xl flex justify-center flex-col items-center">
+                <div className="flex flex-col justify-center items-center gap-8 mb-8">
                     <img src={logo} width={200} height={200} alt="logo" />
-                    <div className="text-blue text-5xl font-semibold">Sign in</div>
+                    <div className="text-blue text-4xl font-semibold">Sign in</div>
                 </div>
-                <p className="flex items-center text-center justify-center py-2">Welcome back, Anh Tran</p>
-                <form onSubmit={handleSubmit(onSubmit)} className="flex justify-center items-center flex-col gap-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="flex justify-center items-center flex-col gap-6">
                     <div className="flex flex-col gap-2">
-                        <label htmlFor="email" className="flex items-center gap-1">
+                        <label htmlFor="email" className="flex items-center gap-1 mb-1">
                             Email address
                             <i className="">
                                 <svg
@@ -81,20 +86,20 @@ const LoginForm: React.FC = () => {
                             type="email"
                             placeholder="Your email address . . ."
                             {...register("email", {
-                                required: "Email is required",
+                                required: "Email is required.",
                                 pattern: {
                                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                    message: "Invalid email address"
+                                    message: "Invalid email address."
                                 }
                             })}
-                            className="bg-[rgba(141,124,221,0.1)] focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-6 py-[10px] rounded-xl w-[360px] placeholder:text-disabled"
+                            className="bg-[rgba(141,124,221,0.1)] focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg w-[360px] placeholder:text-disabled"
                             value={email}
                             onChange={onChangeEmail}
                         />
-                        {errors.email && <span>{errors.email.message}</span>}
+                        {errors.email && <span className="text-[#ff0000]">{errors.email.message}</span>}
                     </div>
                     <div className="flex flex-col gap-2">
-                        <label htmlFor="password" className="flex items-center gap-1">
+                        <label htmlFor="password" className="flex items-center gap-1 mb-1">
                             Password
                             <i className="">
                                 <svg
@@ -116,19 +121,22 @@ const LoginForm: React.FC = () => {
                             type="password"
                             placeholder="Your password . . ."
                             {...register("password", {
-                                required: "Password is required",
+                                required: "Password is required.",
                                 minLength: {
                                     value: 6,
-                                    message: "Password must be at least 6 characters"
+                                    message: "Password must be at least 6 characters."
                                 }
                             })}
-                            className="bg-[rgba(141,124,221,0.1)] focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-6 py-[10px] rounded-xl w-[360px] placeholder:text-disabled"
+                            className="bg-[rgba(141,124,221,0.1)] focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg w-[360px] placeholder:text-disabled"
                             value={password}
                             onChange={onChangePassword}
                         />
-                        {errors.password && <span>{errors.password.message}</span>}
+                        {errors.password && <span className="text-[#ff0000]">{errors.password.message}</span>}
                     </div>
-                    <button className="py-2 px-8 mt-4 rounded-xl border-blue border hover:border-primary" type="submit">
+                    <button
+                        className="py-3 px-8 mt-4 text-[15px] font-semibold rounded-lg border-blue border hover:border-primary hover:bg-primary"
+                        type="submit"
+                    >
                         Sign in
                     </button>
                 </form>

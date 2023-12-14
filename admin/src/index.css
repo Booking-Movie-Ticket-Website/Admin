@@ -13,3 +13,11 @@
 .tippy-box[data-placement^="top"] > .tippy-arrow:before {
     @apply !border-t-primary !bottom-[-8px];
 }
+
+.Toastify__toast {
+    @apply !p-4 border border-primary !rounded-lg !shadow-sm !font-montserrat;
+}
+
+.Toastify__toast-theme--dark {
+    @apply !bg-background;
+}

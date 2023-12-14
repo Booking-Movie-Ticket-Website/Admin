@@ -2,11 +2,14 @@ import MoviesList from "~/components/MoviesList";
 import Tippy from "@tippyjs/react/headless";
 import "tippy.js/dist/tippy.css";
 import { useState } from "react";
+import usePortal from "react-cool-portal";
 
 function Movies() {
     const [visible, setVisible] = useState(false);
     const [type, setType] = useState("");
     const [title, setTitle] = useState("All");
+
+    const { Portal, show, hide } = usePortal();
 
     return (
         <div className="p-8">
@@ -113,7 +116,10 @@ function Movies() {
                     </Tippy>
                 </div>
                 <div className="flex gap-3 items-center">
-                    <button className="rounded-xl border-blue border hover:border-primary flex items-center justify-center p-3 w-[120px]">
+                    <button
+                        onClick={() => show()}
+                        className="rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 w-[120px]"
+                    >
                         <i className="mr-[3px]">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -140,7 +146,7 @@ function Movies() {
                         </i>
                         New
                     </button>
-                    <button className="rounded-xl border-blue border hover:border-primary flex items-center justify-center p-3 w-[120px]">
+                    <button className="rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 w-[120px]">
                         <i className="mr-1">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -160,6 +166,9 @@ function Movies() {
                 </div>
             </div>
             <MoviesList type={type} />
+            <Portal>
+                <p>Wow! I am rendered outside the DOM hierarchy of my parent component.</p>
+            </Portal>
         </div>
     );
 }

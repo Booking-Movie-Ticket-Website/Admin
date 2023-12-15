@@ -21,3 +21,27 @@
 .Toastify__toast-theme--dark {
     @apply !bg-background;
 }
+
+body {
+    @apply font-montserrat text-white text-sm;
+}
+
+@layer base {
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        color: #fff;
+        opacity: 1;
+        display: block;
+        width: 16px;
+        height: 16px;
+    }
+
+    input {
+        color-scheme: dark;
+    }
+}

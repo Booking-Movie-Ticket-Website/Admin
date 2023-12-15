@@ -134,7 +134,7 @@ const LoginForm: React.FC = () => {
                         {errors.password && <span className="text-[#ff0000]">{errors.password.message}</span>}
                     </div>
                     <button
-                        className="py-3 px-8 mt-4 text-[15px] font-semibold rounded-lg border-blue border hover:border-primary hover:bg-primary"
+                        className="py-3 px-8 mt-4 font-semibold rounded-lg border-blue border hover:border-primary hover:bg-primary"
                         type="submit"
                     >
                         Sign in

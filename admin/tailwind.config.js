@@ -19,7 +19,8 @@ export const theme = {
         blue: "#57c3e3",
         border: "#373845",
         block: "#262a38",
-        red: "#e69473"
+        red: "#e69473",
+        deepRed: "#ff0000"
     },
     extend: {}
 };

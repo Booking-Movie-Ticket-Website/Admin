@@ -9,9 +9,9 @@ interface Props {
 
 const MovieItem: React.FC<Props> = ({ name, img, director, id }) => {
     return (
-        <li className="w-[calc((100%-72px)/4)] shadow-sm">
+        <li className="w-[calc((100%-96px)/5)]">
             <a href={`/movies/${id}`}>
-                <div className="group overflow-hidden rounded-xl aspect-square">
+                <div className="group overflow-hidden rounded-xl aspect-square shadow-sm">
                     <img
                         src={img}
                         alt="movie poster"
@@ -20,10 +20,10 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id }) => {
                 </div>
             </a>
             <div className="pt-2">
-                <a className="text-lg hover:text-primary text-blue" href={`/movies/${id}`}>
+                <a className="text-base hover:text-primary text-blue" href={`/movies/${id}`}>
                     {name}
                 </a>
-                <div className="text-sm">Director: {director}</div>
+                <div className="text-[13px]">{director}</div>
             </div>
         </li>
     );

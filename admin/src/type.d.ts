@@ -7,7 +7,13 @@ interface IMovie {
     nation: string;
     totalReviews: number;
     avrStars: number;
-    isActive: boolean;
-    movieCategoryIds: string[];
-    movieParticipantIds: string[];
+    director: string;
+    movieCategoryIds: string;
+    movieParticipantIds: string;
+    moviePosters: Array<IMoviePosters>;
+}
+
+interface IMoviePosters {
+    base64: string;
+    isThumb: boolean;
 }

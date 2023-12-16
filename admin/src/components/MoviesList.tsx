@@ -34,12 +34,12 @@ const MoviesList: React.FC<Props> = ({ type }) => {
     }, [type]);
 
     return (
-        data && (
-            <div className="mb-10">
-                <div className="bg-block p-6 rounded-3xl shadow-xl">
-                    <ul className="w-full flex flex-wrap gap-6">
-                        {loading && <SkeletonItem />}
-                        {!loading &&
+        <div className="mb-10">
+            <div className="bg-block p-6 rounded-3xl shadow-xl">
+                <ul className="w-full flex flex-wrap gap-6">
+                    {loading && <SkeletonItem />}
+                    {!loading &&
+                        (data.length > 0 ? (
                             data.map((movie: Movie) => (
                                 <MovieItem
                                     id={movie.id}
@@ -48,9 +48,9 @@ const MoviesList: React.FC<Props> = ({ type }) => {
                                     director={movie.director}
                                     img={movie.moviePosters[0].link}
                                 />
-                            ))}
-                        {data.length === 0 && (
-                            <li className="w-[calc((100%-72px)/4)] shadow-sm border border-blue aspect-square rounded-xl flex items-center justify-center group hover:border-primary">
+                            ))
+                        ) : (
+                            <li className="w-[calc((100%-96px)/5)] shadow-sm border border-blue aspect-square rounded-xl flex items-center justify-center group hover:border-primary">
                                 <ToolTip content="Create a new movie">
                                     <button className="">
                                         <i>
@@ -82,11 +82,10 @@ const MoviesList: React.FC<Props> = ({ type }) => {
                                     </button>
                                 </ToolTip>
                             </li>
-                        )}
-                    </ul>
-                </div>
+                        ))}
+                </ul>
             </div>
-        )
+        </div>
     );
 };
 

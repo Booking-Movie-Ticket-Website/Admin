@@ -3,41 +3,77 @@ import Tippy from "@tippyjs/react/headless";
 import "tippy.js/dist/tippy.css";
 import { useState } from "react";
 import usePortal from "react-cool-portal";
-import { useForm, SubmitHandler } from "react-hook-form";
-import axios from "~/utils/axios";
-import { toast } from "react-toastify";
-import React from "react";
+import { useForm, SubmitHandler, useFieldArray } from "react-hook-form";
+// import axios from "~/utils/axios";
+// import { toast } from "react-toastify";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+
+const schema = yup.object().shape({
+    name: yup.string().required("Name is required."),
+    duration: yup.number().required("Duration is required.").typeError("Duration must be a number."),
+    description: yup.string().required("Description is required."),
+    trailerLink: yup.string().required("Trailer link is required."),
+    releaseDate: yup.date().required("Release date is required.").typeError("Release date must be a date."),
+    nation: yup.string().required("Nation is required."),
+    totalReviews: yup.number().positive().integer().typeError("Total reviews must be a number.").required(),
+    avrStars: yup
+        .number()
+        .min(0, "Average stars must not be less than 0")
+        .max(5, "Average stars must not be greater than 5")
+        .typeError("Average stars must be a number.")
+        .required(),
+    director: yup.string().required("Director is required"),
+    movieCategoryIds: yup
+        .string()
+        .matches(/^\d+(,\s*\d+)*$/, "Must be a comma-separated list of numbers")
+        .required(),
+    movieParticipantIds: yup
+        .string()
+        .matches(/^\d+(,\s*\d+)*$/, "Must be a comma-separated list of numbers")
+        .required(),
+    moviePosters: yup
+        .array()
+        .of(
+            yup.object().shape({
+                base64: yup.string().required("Link is required."),
+                isThumb: yup.boolean().required()
+            })
+        )
+        .required()
+});
 
 function Movies() {
     const [visible, setVisible] = useState(false);
     const [activeVisible, setActiveVisible] = useState(false);
     const [type, setType] = useState("");
     const [title, setTitle] = useState("All");
+    const [isActive, setActive] = useState(false);
 
     const { Portal, show, hide } = usePortal({
-        defaultShow: false,
-        clickOutsideToHide: true
+        defaultShow: false
     });
     const {
+        control,
         register,
         handleSubmit,
-        formState: { errors }
-    } = useForm<IMovie>();
+        formState: { errors },
+        reset
+    } = useForm<IMovie>({
+        resolver: yupResolver(schema),
+        defaultValues: {
+            moviePosters: [{ base64: "", isThumb: false }]
+        }
+    });
 
-    const onSubmit: SubmitHandler<IMovie> = async () => {
-        console.log(
-            name,
-            duration,
-            description,
-            trailerLink,
-            releaseDate,
-            nation,
-            totalReviews,
-            avrStars,
-            isActive,
-            movieCategoryIds,
-            movieParticipantIds
-        );
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "moviePosters"
+    });
+
+    const onSubmit: SubmitHandler<IMovie> = async (data) => {
+        console.log({ ...data, isActive });
+        reset();
         // await axios
         //     .post("/movies", {
         //         name,
@@ -58,70 +94,6 @@ function Movies() {
         //     .catch(() => {
         //         toast("Create movie failed!");
         //     });
-    };
-
-    //Form data
-    const [name, setName] = useState("");
-    const [duration, setDuration] = useState("");
-    const [description, setDescription] = useState("");
-    const [trailerLink, setTrailerLink] = useState("");
-    const [releaseDate, setReleaseDate] = useState(Date);
-    const [nation, setNation] = useState("");
-    const [totalReviews, setTotalReviews] = useState("0");
-    const [avrStars, setAvrStars] = useState("0");
-    const [isActive, setActive] = useState(false);
-    const [movieCategoryIds, setMovieCategoryIds] = useState([]);
-    const [movieParticipantIds, setMovieParticipantIds] = useState([]);
-
-    //onChangeFunc with input
-    const onChangeName = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setName(value);
-    };
-
-    const onChangeDuration = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setDuration(value);
-    };
-
-    const onChangeDescription = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setDescription(value);
-    };
-
-    const onChangeTrailerLink = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setTrailerLink(value);
-    };
-
-    const onChangeReleaseDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setReleaseDate(value);
-    };
-
-    const onChangeNation = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setNation(value);
-    };
-
-    const onChangeTotalReviews = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setTotalReviews(value);
-    };
-
-    const onChangeAvrStars = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setAvrStars(value);
-    };
-
-    const onChangeMovieCategoryIds = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setMovieCategoryIds(value);
-    };
-
-    const onChangeMovieParticipantIds = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setMovieParticipantIds(value);
     };
 
     return (
@@ -258,7 +230,7 @@ function Movies() {
                                     ></path>
                                 </svg>
                             </i>
-                            New
+                            Create
                         </button>
                         <button className="rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 w-[112px]">
                             <i className="mr-1">
@@ -284,7 +256,7 @@ function Movies() {
             <Portal>
                 <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                     <div className="flex items-center justify-center">
-                        <div className="border border-blue p-8 bg-background relative rounded-xl">
+                        <div className="border border-blue p-8 bg-background relative rounded-xl max-h-[810px] max-w-[662px] overflow-y-scroll">
                             <button
                                 onClick={hide}
                                 className="absolute right-4 top-4 border border-blue rounded-full p-1 hover:border-primary hover:bg-primary"
@@ -331,18 +303,14 @@ function Movies() {
                                             type="text"
                                             id="name"
                                             placeholder="Name . . ."
-                                            value={name}
-                                            {...register("name", {
-                                                required: "Name is required."
-                                            })}
-                                            onChange={onChangeName}
+                                            {...register("name")}
                                             className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                         />
-                                        {errors.name && <span className="text-deepRed">{errors.name.message}</span>}
+                                        {<span className="text-deepRed">{errors.name?.message}</span>}
                                     </div>
                                     <div className="flex gap-2 flex-col">
-                                        <label htmlFor="nation" className="flex gap-1 mb-1 items-center">
-                                            Nation
+                                        <label htmlFor="director" className="flex gap-1 mb-1 items-center">
+                                            Director
                                             <i className="">
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -360,16 +328,12 @@ function Movies() {
                                         </label>
                                         <input
                                             type="text"
-                                            id="nation"
-                                            value={nation}
-                                            {...register("nation", {
-                                                required: "Nation is required."
-                                            })}
-                                            onChange={onChangeNation}
+                                            id="director"
+                                            {...register("director")}
                                             placeholder="Ex: United States, France, . . ."
                                             className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                         />
-                                        {errors.nation && <span className="text-deepRed">{errors.nation.message}</span>}
+                                        {<span className="text-deepRed">{errors.director?.message}</span>}
                                     </div>
                                 </div>
                                 <div className="flex gap-2 flex-col">
@@ -393,17 +357,11 @@ function Movies() {
                                     <input
                                         type="text"
                                         id="description"
-                                        value={description}
-                                        {...register("description", {
-                                            required: "Description is required."
-                                        })}
-                                        onChange={onChangeDescription}
+                                        {...register("description")}
                                         placeholder="Description . . ."
                                         className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                     />
-                                    {errors.description && (
-                                        <span className="text-deepRed">{errors.description.message}</span>
-                                    )}
+                                    {<span className="text-deepRed">{errors.description?.message}</span>}
                                 </div>
                                 <div className="flex gap-2 flex-col">
                                     <label htmlFor="trailerLink" className="flex gap-1 mb-1 items-center">
@@ -426,19 +384,40 @@ function Movies() {
                                     <input
                                         type="text"
                                         id="trailerLink"
-                                        value={trailerLink}
-                                        {...register("trailerLink", {
-                                            required: "Trailer link is required."
-                                        })}
-                                        onChange={onChangeTrailerLink}
+                                        {...register("trailerLink")}
                                         placeholder="Trailer link . . ."
                                         className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                     />
-                                    {errors.trailerLink && (
-                                        <span className="text-deepRed">{errors.trailerLink.message}</span>
-                                    )}
+                                    {<span className="text-deepRed">{errors.trailerLink?.message}</span>}
                                 </div>
                                 <div className="flex gap-4">
+                                    <div className="flex gap-2 flex-col flex-1">
+                                        <label htmlFor="nation" className="flex gap-1 mb-1 items-center">
+                                            Nation
+                                            <i className="">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="8"
+                                                    height="8"
+                                                    viewBox="0 0 48 48"
+                                                    id="asterisk"
+                                                >
+                                                    <path
+                                                        className="fill-deepRed"
+                                                        d="M42.588 20.196c-1.53.882-6.24 2.715-10.554 3.804 4.314 1.089 9.024 2.922 10.557 3.804A6.003 6.003 0 0 1 44.784 36a5.996 5.996 0 0 1-8.193 2.196c-1.533-.885-5.475-4.053-8.574-7.245C29.232 35.235 30 40.233 30 42c0 3.312-2.688 6-6 6s-6-2.688-6-6c0-1.767.768-6.765 1.986-11.049-3.099 3.192-7.041 6.36-8.574 7.245-2.871 1.656-6.54.675-8.196-2.196s-.675-6.54 2.196-8.196c1.53-.882 6.24-2.715 10.557-3.804-4.317-1.089-9.027-2.922-10.557-3.804C2.541 18.54 1.56 14.871 3.216 12s5.325-3.852 8.196-2.196c1.533.885 5.475 4.053 8.574 7.245C18.768 12.765 18 7.767 18 6c0-3.312 2.688-6 6-6s6 2.688 6 6c0 1.767-.768 6.765-1.986 11.049 3.099-3.192 7.044-6.36 8.574-7.245A5.995 5.995 0 0 1 44.781 12a5.998 5.998 0 0 1-2.193 8.196z"
+                                                    ></path>
+                                                </svg>
+                                            </i>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="nation"
+                                            {...register("nation")}
+                                            placeholder="Ex: United States . . ."
+                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
+                                        />
+                                        {<span className="text-deepRed">{errors.nation?.message}</span>}
+                                    </div>
                                     <div className="flex gap-2 flex-col flex-1">
                                         <label htmlFor="duration" className="flex gap-1 mb-1 items-center">
                                             Duration
@@ -460,21 +439,15 @@ function Movies() {
                                         <input
                                             type="number"
                                             id="duration"
-                                            value={duration}
-                                            {...register("duration", {
-                                                required: "Duration is required."
-                                            })}
-                                            onChange={onChangeDuration}
+                                            {...register("duration")}
                                             placeholder="Ex: 180"
                                             className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                         />
-                                        {errors.duration && (
-                                            <span className="text-deepRed">{errors.duration.message}</span>
-                                        )}
+                                        {<span className="text-deepRed">{errors.duration?.message}</span>}
                                     </div>
                                     <div className="flex gap-2 flex-col flex-1">
                                         <label htmlFor="releaseDate" className="flex gap-1 mb-1 items-center">
-                                            Release Date
+                                            Release date
                                             <i className="">
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -492,17 +465,12 @@ function Movies() {
                                         </label>
                                         <input
                                             type="date"
+                                            pattern="\d{4}-\d{2}-\d{2}"
                                             id="releaseDate"
-                                            value={releaseDate}
-                                            {...register("releaseDate", {
-                                                required: "Release date is required."
-                                            })}
-                                            onChange={onChangeReleaseDate}
+                                            {...register("releaseDate")}
                                             className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                         />
-                                        {errors.releaseDate && (
-                                            <span className="text-deepRed">{errors.releaseDate.message}</span>
-                                        )}
+                                        {<span className="text-deepRed">{errors.releaseDate?.message}</span>}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-3 gap-4">
@@ -514,10 +482,10 @@ function Movies() {
                                             type="number"
                                             id="totalReviews"
                                             placeholder="Ex: 27"
-                                            value={totalReviews}
-                                            onChange={onChangeTotalReviews}
+                                            {...register("totalReviews")}
                                             className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                         />
+                                        {<span className="text-deepRed">{errors.totalReviews?.message}</span>}
                                     </div>
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="averageStars" className="flex gap-1 mb-1 items-center">
@@ -526,11 +494,11 @@ function Movies() {
                                         <input
                                             type="number"
                                             id="averageStars"
-                                            value={avrStars}
-                                            onChange={onChangeAvrStars}
+                                            {...register("avrStars")}
                                             placeholder="Ex: 5"
                                             className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                         />
+                                        {<span className="text-deepRed">{errors.avrStars?.message}</span>}
                                     </div>
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="active" className="flex gap-1 mb-1 items-center">
@@ -610,10 +578,10 @@ function Movies() {
                                             type="text"
                                             id="movieCategoryIds"
                                             placeholder="Ex: 1, 2, 3, . . ."
-                                            value={movieCategoryIds}
-                                            onChange={onChangeMovieCategoryIds}
+                                            {...register("movieCategoryIds")}
                                             className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                         />
+                                        {<span className="text-deepRed">{errors.movieCategoryIds?.message}</span>}
                                     </div>
                                     <div className="flex gap-2 flex-col flex-1">
                                         <label htmlFor="movieParticipantIds" className="flex gap-1 mb-1 items-center">
@@ -623,14 +591,59 @@ function Movies() {
                                             type="text"
                                             id="movieParticipantIds"
                                             placeholder="Ex: 1, 2, 3, . . ."
-                                            value={movieParticipantIds}
-                                            onChange={onChangeMovieParticipantIds}
+                                            {...register("movieParticipantIds")}
                                             className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                         />
+                                        {<span className="text-deepRed">{errors.movieParticipantIds?.message}</span>}
                                     </div>
                                 </div>
+                                {fields.map((field, index) => (
+                                    <div key={field.id} className="grid grid-cols-2 gap-4 justify-center items-center">
+                                        <div className="flex flex-col gap-2">
+                                            <label htmlFor={`poster-${index}`} className="flex gap-1 mb-1 items-center">
+                                                Poster link
+                                            </label>
+                                            <input
+                                                placeholder="Poster link..."
+                                                id={`poster-${index}`}
+                                                {...register(`moviePosters.${index}.base64` as const)}
+                                                className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
+                                            />
+                                            {
+                                                <span className="text-deepRed">
+                                                    {errors?.moviePosters?.[index]?.base64?.message}
+                                                </span>
+                                            }
+                                        </div>
+                                        <div className="flex gap-2 mt-6">
+                                            <div className="flex gap-2 flex-1">
+                                                <input
+                                                    type="checkbox"
+                                                    {...register(`moviePosters.${index}.isThumb` as const)}
+                                                    className={errors?.moviePosters?.[index]?.isThumb ? "error" : ""}
+                                                />
+                                                <label
+                                                    htmlFor={`poster-${index}`}
+                                                    className="flex gap-1 mb-1 items-center"
+                                                >
+                                                    Is thumb
+                                                </label>
+                                            </div>
+                                            <button
+                                                className="outline outline-1 outline-blue rounded-lg px-5 py-3"
+                                                type="button"
+                                                onClick={() => remove(index)}
+                                            >
+                                                Delete this field
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                <button type="button" onClick={() => append({ base64: "", isThumb: false })}>
+                                    Add Poster
+                                </button>
                                 <button
-                                    className="py-3 px-8 mt-8 text-base font-semibold rounded-lg border-blue border hover:border-primary hover:bg-primary"
+                                    className="py-3 px-8 mt-3 text-base font-semibold rounded-lg border-blue border hover:border-primary hover:bg-primary"
                                     type="submit"
                                 >
                                     Create movie

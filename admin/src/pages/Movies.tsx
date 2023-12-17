@@ -1,13 +1,14 @@
 import MoviesList from "~/components/MoviesList";
 import Tippy from "@tippyjs/react/headless";
 import "tippy.js/dist/tippy.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import usePortal from "react-cool-portal";
 import { useForm, SubmitHandler, useFieldArray } from "react-hook-form";
-// import axios from "~/utils/axios";
+import axios from "~/utils/axios";
 // import { toast } from "react-toastify";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import IsRequired from "~/icons/IsRequired";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),
@@ -19,24 +20,24 @@ const schema = yup.object().shape({
     totalReviews: yup.number().positive().integer().typeError("Total reviews must be a number.").required(),
     avrStars: yup
         .number()
-        .min(0, "Average stars must not be less than 0")
-        .max(5, "Average stars must not be greater than 5")
+        .min(0, "Average stars must not be less than 0.")
+        .max(5, "Average stars must not be greater than 5.")
         .typeError("Average stars must be a number.")
         .required(),
-    director: yup.string().required("Director is required"),
-    movieCategoryIds: yup
-        .string()
-        .matches(/^\d+(,\s*\d+)*$/, "Must be a comma-separated list of numbers")
-        .required(),
+    director: yup.string().required("Director is required."),
+    // movieCategoryIds: yup
+    //     .string()
+    //     .matches(/^\d+(,\s*\d+)*$/, "Must be a comma-separated list of numbers.")
+    //     .required(),
     movieParticipantIds: yup
         .string()
-        .matches(/^\d+(,\s*\d+)*$/, "Must be a comma-separated list of numbers")
+        .matches(/^\d+(,\s*\d+)*$/, "Must be a comma-separated list of numbers.")
         .required(),
     moviePosters: yup
         .array()
         .of(
             yup.object().shape({
-                base64: yup.string().required("Link is required."),
+                base64: yup.string().url().required("Link is required."),
                 isThumb: yup.boolean().required()
             })
         )
@@ -49,6 +50,32 @@ function Movies() {
     const [type, setType] = useState("");
     const [title, setTitle] = useState("All");
     const [isActive, setActive] = useState(false);
+    const [categories, setCategories] = useState(
+        Array<{
+            id: string;
+            name: string;
+        }>
+    );
+    const [movieCategories, setMovieCategories] = useState(
+        Array<{
+            id: string;
+            name: string;
+        }>
+    );
+    const [participants, setParticipants] = useState(
+        Array<{
+            id: string;
+            fullName: string;
+            profilePicture: string;
+        }>
+    );
+    const [movieParticipants, setMovieParticipants] = useState(
+        Array<{
+            id: string;
+            fullName: string;
+            profilePicture: string;
+        }>
+    );
 
     const { Portal, show, hide } = usePortal({
         defaultShow: false
@@ -72,7 +99,7 @@ function Movies() {
     });
 
     const onSubmit: SubmitHandler<IMovie> = async (data) => {
-        console.log({ ...data, isActive });
+        console.log({ ...data, isActive, movieCategories });
         reset();
         // await axios
         //     .post("/movies", {
@@ -95,6 +122,26 @@ function Movies() {
         //         toast("Create movie failed!");
         //     });
     };
+
+    useEffect(() => {
+        (async () => {
+            await axios
+                .get("/categories/no-pagination", {
+                    headers: { "Content-Type": "application/json" }
+                })
+                .then((response) => setCategories(response.data))
+                .catch((error) => console.error(error));
+        })();
+
+        (async () => {
+            await axios
+                .get("/people/no-pagination", {
+                    headers: { "Content-Type": "application/json" }
+                })
+                .then((response) => setParticipants(response.data))
+                .catch((error) => console.error(error));
+        })();
+    }, []);
 
     return (
         <>
@@ -256,7 +303,7 @@ function Movies() {
             <Portal>
                 <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                     <div className="flex items-center justify-center">
-                        <div className="border border-blue p-8 bg-background relative rounded-xl max-h-[810px] max-w-[662px] overflow-y-scroll">
+                        <div className="border border-blue p-8 bg-background relative rounded-xl max-h-[810px] max-w-[662px] overflow-y-scroll no-scrollbar">
                             <button
                                 onClick={hide}
                                 className="absolute right-4 top-4 border border-blue rounded-full p-1 hover:border-primary hover:bg-primary"
@@ -279,25 +326,13 @@ function Movies() {
                             <div className="flex justify-center mb-8">
                                 <div className="text-white font-semibold text-xl">Create a new movie</div>
                             </div>
-                            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+                            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+                                <div className="text-blue text-[15px]">Movie Information</div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="name" className="flex gap-1 mb-1 items-center">
                                             Name
-                                            <i className="">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="8"
-                                                    height="8"
-                                                    viewBox="0 0 48 48"
-                                                    id="asterisk"
-                                                >
-                                                    <path
-                                                        className="fill-deepRed"
-                                                        d="M42.588 20.196c-1.53.882-6.24 2.715-10.554 3.804 4.314 1.089 9.024 2.922 10.557 3.804A6.003 6.003 0 0 1 44.784 36a5.996 5.996 0 0 1-8.193 2.196c-1.533-.885-5.475-4.053-8.574-7.245C29.232 35.235 30 40.233 30 42c0 3.312-2.688 6-6 6s-6-2.688-6-6c0-1.767.768-6.765 1.986-11.049-3.099 3.192-7.041 6.36-8.574 7.245-2.871 1.656-6.54.675-8.196-2.196s-.675-6.54 2.196-8.196c1.53-.882 6.24-2.715 10.557-3.804-4.317-1.089-9.027-2.922-10.557-3.804C2.541 18.54 1.56 14.871 3.216 12s5.325-3.852 8.196-2.196c1.533.885 5.475 4.053 8.574 7.245C18.768 12.765 18 7.767 18 6c0-3.312 2.688-6 6-6s6 2.688 6 6c0 1.767-.768 6.765-1.986 11.049 3.099-3.192 7.044-6.36 8.574-7.245A5.995 5.995 0 0 1 44.781 12a5.998 5.998 0 0 1-2.193 8.196z"
-                                                    ></path>
-                                                </svg>
-                                            </i>
+                                            <IsRequired />
                                         </label>
                                         <input
                                             type="text"
@@ -311,20 +346,7 @@ function Movies() {
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="director" className="flex gap-1 mb-1 items-center">
                                             Director
-                                            <i className="">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="8"
-                                                    height="8"
-                                                    viewBox="0 0 48 48"
-                                                    id="asterisk"
-                                                >
-                                                    <path
-                                                        className="fill-deepRed"
-                                                        d="M42.588 20.196c-1.53.882-6.24 2.715-10.554 3.804 4.314 1.089 9.024 2.922 10.557 3.804A6.003 6.003 0 0 1 44.784 36a5.996 5.996 0 0 1-8.193 2.196c-1.533-.885-5.475-4.053-8.574-7.245C29.232 35.235 30 40.233 30 42c0 3.312-2.688 6-6 6s-6-2.688-6-6c0-1.767.768-6.765 1.986-11.049-3.099 3.192-7.041 6.36-8.574 7.245-2.871 1.656-6.54.675-8.196-2.196s-.675-6.54 2.196-8.196c1.53-.882 6.24-2.715 10.557-3.804-4.317-1.089-9.027-2.922-10.557-3.804C2.541 18.54 1.56 14.871 3.216 12s5.325-3.852 8.196-2.196c1.533.885 5.475 4.053 8.574 7.245C18.768 12.765 18 7.767 18 6c0-3.312 2.688-6 6-6s6 2.688 6 6c0 1.767-.768 6.765-1.986 11.049 3.099-3.192 7.044-6.36 8.574-7.245A5.995 5.995 0 0 1 44.781 12a5.998 5.998 0 0 1-2.193 8.196z"
-                                                    ></path>
-                                                </svg>
-                                            </i>
+                                            <IsRequired />
                                         </label>
                                         <input
                                             type="text"
@@ -339,20 +361,7 @@ function Movies() {
                                 <div className="flex gap-2 flex-col">
                                     <label htmlFor="description" className="flex gap-1 mb-1 items-center">
                                         Description
-                                        <i className="">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="8"
-                                                height="8"
-                                                viewBox="0 0 48 48"
-                                                id="asterisk"
-                                            >
-                                                <path
-                                                    className="fill-deepRed"
-                                                    d="M42.588 20.196c-1.53.882-6.24 2.715-10.554 3.804 4.314 1.089 9.024 2.922 10.557 3.804A6.003 6.003 0 0 1 44.784 36a5.996 5.996 0 0 1-8.193 2.196c-1.533-.885-5.475-4.053-8.574-7.245C29.232 35.235 30 40.233 30 42c0 3.312-2.688 6-6 6s-6-2.688-6-6c0-1.767.768-6.765 1.986-11.049-3.099 3.192-7.041 6.36-8.574 7.245-2.871 1.656-6.54.675-8.196-2.196s-.675-6.54 2.196-8.196c1.53-.882 6.24-2.715 10.557-3.804-4.317-1.089-9.027-2.922-10.557-3.804C2.541 18.54 1.56 14.871 3.216 12s5.325-3.852 8.196-2.196c1.533.885 5.475 4.053 8.574 7.245C18.768 12.765 18 7.767 18 6c0-3.312 2.688-6 6-6s6 2.688 6 6c0 1.767-.768 6.765-1.986 11.049 3.099-3.192 7.044-6.36 8.574-7.245A5.995 5.995 0 0 1 44.781 12a5.998 5.998 0 0 1-2.193 8.196z"
-                                                ></path>
-                                            </svg>
-                                        </i>
+                                        <IsRequired />
                                     </label>
                                     <input
                                         type="text"
@@ -366,20 +375,7 @@ function Movies() {
                                 <div className="flex gap-2 flex-col">
                                     <label htmlFor="trailerLink" className="flex gap-1 mb-1 items-center">
                                         Trailer link
-                                        <i className="">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="8"
-                                                height="8"
-                                                viewBox="0 0 48 48"
-                                                id="asterisk"
-                                            >
-                                                <path
-                                                    className="fill-deepRed"
-                                                    d="M42.588 20.196c-1.53.882-6.24 2.715-10.554 3.804 4.314 1.089 9.024 2.922 10.557 3.804A6.003 6.003 0 0 1 44.784 36a5.996 5.996 0 0 1-8.193 2.196c-1.533-.885-5.475-4.053-8.574-7.245C29.232 35.235 30 40.233 30 42c0 3.312-2.688 6-6 6s-6-2.688-6-6c0-1.767.768-6.765 1.986-11.049-3.099 3.192-7.041 6.36-8.574 7.245-2.871 1.656-6.54.675-8.196-2.196s-.675-6.54 2.196-8.196c1.53-.882 6.24-2.715 10.557-3.804-4.317-1.089-9.027-2.922-10.557-3.804C2.541 18.54 1.56 14.871 3.216 12s5.325-3.852 8.196-2.196c1.533.885 5.475 4.053 8.574 7.245C18.768 12.765 18 7.767 18 6c0-3.312 2.688-6 6-6s6 2.688 6 6c0 1.767-.768 6.765-1.986 11.049 3.099-3.192 7.044-6.36 8.574-7.245A5.995 5.995 0 0 1 44.781 12a5.998 5.998 0 0 1-2.193 8.196z"
-                                                ></path>
-                                            </svg>
-                                        </i>
+                                        <IsRequired />
                                     </label>
                                     <input
                                         type="text"
@@ -394,20 +390,7 @@ function Movies() {
                                     <div className="flex gap-2 flex-col flex-1">
                                         <label htmlFor="nation" className="flex gap-1 mb-1 items-center">
                                             Nation
-                                            <i className="">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="8"
-                                                    height="8"
-                                                    viewBox="0 0 48 48"
-                                                    id="asterisk"
-                                                >
-                                                    <path
-                                                        className="fill-deepRed"
-                                                        d="M42.588 20.196c-1.53.882-6.24 2.715-10.554 3.804 4.314 1.089 9.024 2.922 10.557 3.804A6.003 6.003 0 0 1 44.784 36a5.996 5.996 0 0 1-8.193 2.196c-1.533-.885-5.475-4.053-8.574-7.245C29.232 35.235 30 40.233 30 42c0 3.312-2.688 6-6 6s-6-2.688-6-6c0-1.767.768-6.765 1.986-11.049-3.099 3.192-7.041 6.36-8.574 7.245-2.871 1.656-6.54.675-8.196-2.196s-.675-6.54 2.196-8.196c1.53-.882 6.24-2.715 10.557-3.804-4.317-1.089-9.027-2.922-10.557-3.804C2.541 18.54 1.56 14.871 3.216 12s5.325-3.852 8.196-2.196c1.533.885 5.475 4.053 8.574 7.245C18.768 12.765 18 7.767 18 6c0-3.312 2.688-6 6-6s6 2.688 6 6c0 1.767-.768 6.765-1.986 11.049 3.099-3.192 7.044-6.36 8.574-7.245A5.995 5.995 0 0 1 44.781 12a5.998 5.998 0 0 1-2.193 8.196z"
-                                                    ></path>
-                                                </svg>
-                                            </i>
+                                            <IsRequired />
                                         </label>
                                         <input
                                             type="text"
@@ -421,20 +404,7 @@ function Movies() {
                                     <div className="flex gap-2 flex-col flex-1">
                                         <label htmlFor="duration" className="flex gap-1 mb-1 items-center">
                                             Duration
-                                            <i className="">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="8"
-                                                    height="8"
-                                                    viewBox="0 0 48 48"
-                                                    id="asterisk"
-                                                >
-                                                    <path
-                                                        className="fill-deepRed"
-                                                        d="M42.588 20.196c-1.53.882-6.24 2.715-10.554 3.804 4.314 1.089 9.024 2.922 10.557 3.804A6.003 6.003 0 0 1 44.784 36a5.996 5.996 0 0 1-8.193 2.196c-1.533-.885-5.475-4.053-8.574-7.245C29.232 35.235 30 40.233 30 42c0 3.312-2.688 6-6 6s-6-2.688-6-6c0-1.767.768-6.765 1.986-11.049-3.099 3.192-7.041 6.36-8.574 7.245-2.871 1.656-6.54.675-8.196-2.196s-.675-6.54 2.196-8.196c1.53-.882 6.24-2.715 10.557-3.804-4.317-1.089-9.027-2.922-10.557-3.804C2.541 18.54 1.56 14.871 3.216 12s5.325-3.852 8.196-2.196c1.533.885 5.475 4.053 8.574 7.245C18.768 12.765 18 7.767 18 6c0-3.312 2.688-6 6-6s6 2.688 6 6c0 1.767-.768 6.765-1.986 11.049 3.099-3.192 7.044-6.36 8.574-7.245A5.995 5.995 0 0 1 44.781 12a5.998 5.998 0 0 1-2.193 8.196z"
-                                                    ></path>
-                                                </svg>
-                                            </i>
+                                            <IsRequired />
                                         </label>
                                         <input
                                             type="number"
@@ -448,20 +418,7 @@ function Movies() {
                                     <div className="flex gap-2 flex-col flex-1">
                                         <label htmlFor="releaseDate" className="flex gap-1 mb-1 items-center">
                                             Release date
-                                            <i className="">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="8"
-                                                    height="8"
-                                                    viewBox="0 0 48 48"
-                                                    id="asterisk"
-                                                >
-                                                    <path
-                                                        className="fill-deepRed"
-                                                        d="M42.588 20.196c-1.53.882-6.24 2.715-10.554 3.804 4.314 1.089 9.024 2.922 10.557 3.804A6.003 6.003 0 0 1 44.784 36a5.996 5.996 0 0 1-8.193 2.196c-1.533-.885-5.475-4.053-8.574-7.245C29.232 35.235 30 40.233 30 42c0 3.312-2.688 6-6 6s-6-2.688-6-6c0-1.767.768-6.765 1.986-11.049-3.099 3.192-7.041 6.36-8.574 7.245-2.871 1.656-6.54.675-8.196-2.196s-.675-6.54 2.196-8.196c1.53-.882 6.24-2.715 10.557-3.804-4.317-1.089-9.027-2.922-10.557-3.804C2.541 18.54 1.56 14.871 3.216 12s5.325-3.852 8.196-2.196c1.533.885 5.475 4.053 8.574 7.245C18.768 12.765 18 7.767 18 6c0-3.312 2.688-6 6-6s6 2.688 6 6c0 1.767-.768 6.765-1.986 11.049 3.099-3.192 7.044-6.36 8.574-7.245A5.995 5.995 0 0 1 44.781 12a5.998 5.998 0 0 1-2.193 8.196z"
-                                                    ></path>
-                                                </svg>
-                                            </i>
+                                            <IsRequired />
                                         </label>
                                         <input
                                             type="date"
@@ -477,6 +434,7 @@ function Movies() {
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="totalReviews" className="flex gap-1 mb-1 items-center">
                                             Total reviews
+                                            <IsRequired />
                                         </label>
                                         <input
                                             type="number"
@@ -490,6 +448,7 @@ function Movies() {
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="averageStars" className="flex gap-1 mb-1 items-center">
                                             Average stars
+                                            <IsRequired />
                                         </label>
                                         <input
                                             type="number"
@@ -569,39 +528,111 @@ function Movies() {
                                         </Tippy>
                                     </div>
                                 </div>
-                                <div className="flex gap-4">
-                                    <div className="flex gap-2 flex-col flex-1">
-                                        <label htmlFor="movieCategoryIds" className="flex gap-1 mb-1 items-center">
-                                            Movie category ids
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="movieCategoryIds"
-                                            placeholder="Ex: 1, 2, 3, . . ."
-                                            {...register("movieCategoryIds")}
-                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                        />
-                                        {<span className="text-deepRed">{errors.movieCategoryIds?.message}</span>}
+                                <div className="flex gap-2 flex-col">
+                                    <label htmlFor="movieCategoryIds" className="flex gap-1 mb-1 items-center">
+                                        Categories
+                                        <IsRequired />
+                                    </label>
+                                    <div className="flex gap-2 items-center overflow-x-scroll no-scrollbar">
+                                        {movieCategories &&
+                                            (movieCategories.length > 0 ? (
+                                                movieCategories.map((movieCategory) => (
+                                                    <span
+                                                        className="py-1 px-2 text-[13px] whitespace-nowrap flex gap-1 items-center rounded-md border border-blue"
+                                                        key={movieCategory.id}
+                                                    >
+                                                        {movieCategory.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const filteredArray = movieCategories.filter(
+                                                                    (obj) => obj.id !== movieCategory.id
+                                                                );
+                                                                setMovieCategories(filteredArray);
+                                                                setCategories([...categories, movieCategory]);
+                                                            }}
+                                                        >
+                                                            <i>
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    viewBox="0 0 24 24"
+                                                                    width={12}
+                                                                    height={12}
+                                                                    id="close"
+                                                                >
+                                                                    <path
+                                                                        className="fill-white"
+                                                                        d="M13.41,12l6.3-6.29a1,1,0,1,0-1.42-1.42L12,10.59,5.71,4.29A1,1,0,0,0,4.29,5.71L10.59,12l-6.3,6.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l6.29,6.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z"
+                                                                    ></path>
+                                                                </svg>
+                                                            </i>
+                                                        </button>
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-xs">Click on tags below to add categories.</span>
+                                            ))}
                                     </div>
-                                    <div className="flex gap-2 flex-col flex-1">
-                                        <label htmlFor="movieParticipantIds" className="flex gap-1 mb-1 items-center">
-                                            Movie participant ids
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="movieParticipantIds"
-                                            placeholder="Ex: 1, 2, 3, . . ."
-                                            {...register("movieParticipantIds")}
-                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                        />
-                                        {<span className="text-deepRed">{errors.movieParticipantIds?.message}</span>}
+                                    <div className="text-blue mt-1">All categories</div>
+                                    <div className="flex gap-2 items-center overflow-x-scroll no-scrollbar mb-2">
+                                        {categories &&
+                                            categories.map((category) => (
+                                                <span
+                                                    onClick={() => {
+                                                        setMovieCategories([...movieCategories, category]);
+                                                        const filteredArray = categories.filter(
+                                                            (obj) => obj.id !== category.id
+                                                        );
+                                                        setCategories(filteredArray);
+                                                    }}
+                                                    className="py-1 px-2 text-[13px] whitespace-nowrap rounded-md border border-blue hover:border-primary hover:bg-primary cursor-pointer"
+                                                    key={category.id}
+                                                >
+                                                    {category.name}
+                                                </span>
+                                            ))}
                                     </div>
                                 </div>
+                                <div className="flex gap-2 flex-col">
+                                    <label htmlFor="movieParticipantIds" className="flex gap-1 mb-1 items-center">
+                                        Movie participant ids
+                                        <IsRequired />
+                                    </label>
+                                    <Tippy
+                                        visible
+                                        interactive
+                                        offset={[0, 0]}
+                                        render={(attrs) => (
+                                            <ul
+                                                className="outline outline-1 outline-primary rounded-lg p-2 max-h-[300px] overflow-y-scroll no-scrollbar bg-background"
+                                                {...attrs}
+                                            >
+                                                {participants &&
+                                                    participants.map((actor) => (
+                                                        <li className="flex items-center p-2">
+                                                            <img
+                                                                src={actor.profilePicture}
+                                                                alt="actor avatar"
+                                                                className="w-10 rounded-full aspect-square mr-2"
+                                                            />
+                                                            {actor.fullName}
+                                                        </li>
+                                                    ))}
+                                            </ul>
+                                        )}
+                                    >
+                                        <div>All actors</div>
+                                    </Tippy>
+                                </div>
+
+                                <div className="outline outline-1 outline-border my-2"></div>
+                                <div className="text-blue text-[15px]">Movie Posters</div>
                                 {fields.map((field, index) => (
                                     <div key={field.id} className="grid grid-cols-2 gap-4 justify-center items-center">
                                         <div className="flex flex-col gap-2">
                                             <label htmlFor={`poster-${index}`} className="flex gap-1 mb-1 items-center">
                                                 Poster link
+                                                <IsRequired />
                                             </label>
                                             <input
                                                 placeholder="Poster link..."
@@ -609,39 +640,39 @@ function Movies() {
                                                 {...register(`moviePosters.${index}.base64` as const)}
                                                 className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                             />
-                                            {
-                                                <span className="text-deepRed">
-                                                    {errors?.moviePosters?.[index]?.base64?.message}
-                                                </span>
-                                            }
                                         </div>
-                                        <div className="flex gap-2 mt-6">
-                                            <div className="flex gap-2 flex-1">
-                                                <input
-                                                    type="checkbox"
-                                                    {...register(`moviePosters.${index}.isThumb` as const)}
-                                                    className={errors?.moviePosters?.[index]?.isThumb ? "error" : ""}
-                                                />
-                                                <label
-                                                    htmlFor={`poster-${index}`}
-                                                    className="flex gap-1 mb-1 items-center"
-                                                >
-                                                    Is thumb
+                                        <div className="flex gap-2 mt-8">
+                                            <div className="flex gap-2 flex-1 items-center">
+                                                <input type="checkbox" className="w-[20px] h-[20px]" />
+                                                <label htmlFor={`poster-${index}`} className="flex gap-1 items-center">
+                                                    Thumbnail
                                                 </label>
                                             </div>
                                             <button
-                                                className="outline outline-1 outline-blue rounded-lg px-5 py-3"
+                                                className="outline outline-1 outline-blue rounded-lg px-5 py-3 hover:outline-primary hover:bg-primary"
                                                 type="button"
                                                 onClick={() => remove(index)}
                                             >
                                                 Delete this field
                                             </button>
                                         </div>
+                                        {
+                                            <span className="text-deepRed mt-[-8px]">
+                                                {errors?.moviePosters?.[index]?.base64?.message}
+                                            </span>
+                                        }
                                     </div>
                                 ))}
-                                <button type="button" onClick={() => append({ base64: "", isThumb: false })}>
-                                    Add Poster
-                                </button>
+                                <div className="flex items-center justify-center">
+                                    <button
+                                        type="button"
+                                        className="outline outline-1 outline-blue px-5 py-3 rounded-lg hover:outline-primary hover:bg-primary"
+                                        onClick={() => append({ base64: "", isThumb: false })}
+                                    >
+                                        Add new poster
+                                    </button>
+                                </div>
+                                <div className="outline outline-1 outline-border my-2"></div>
                                 <button
                                     className="py-3 px-8 mt-3 text-base font-semibold rounded-lg border-blue border hover:border-primary hover:bg-primary"
                                     type="submit"

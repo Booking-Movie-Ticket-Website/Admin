@@ -8,8 +8,8 @@ interface IMovie {
     totalReviews: number;
     avrStars: number;
     director: string;
-    movieCategoryIds: string;
-    movieParticipantIds: string;
+    // movieCategoryIds: string;
+    // movieParticipantIds: string;
     moviePosters: Array<IMoviePosters>;
 }
 

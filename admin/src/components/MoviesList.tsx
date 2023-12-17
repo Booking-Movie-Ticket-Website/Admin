@@ -26,7 +26,7 @@ const MoviesList: React.FC<Props> = ({ type }) => {
             await axios
                 .get(`/movies?page=1&take=10&filterMovies=${type}`, { headers: { "Content-Type": "application/json" } })
                 .then((response) => {
-                    setData(response.data);
+                    setData(response.data.data);
                     setLoading(false);
                 })
                 .catch((error) => console.error(error));

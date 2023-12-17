@@ -23,7 +23,7 @@
 }
 
 body {
-    @apply font-montserrat text-white text-sm;
+    @apply font-montserrat text-white text-sm scroll-smooth;
 }
 
 @layer base {
@@ -43,5 +43,19 @@ body {
 
     input {
         color-scheme: dark;
+    }
+
+    input[type="checkbox"] {
+        @apply accent-primary;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .no-scrollbar {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
     }
 }

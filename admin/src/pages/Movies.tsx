@@ -10,6 +10,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import IsRequired from "~/icons/IsRequired";
 import convertReleaseDate from "~/utils/convertReleaseDate";
+import { convertToBase64 } from "~/utils/convertToBase64";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),
@@ -18,13 +19,6 @@ const schema = yup.object().shape({
     trailerLink: yup.string().required("Trailer link is required."),
     releaseDate: yup.date().required("Release date is required.").typeError("Release date must be a date."),
     nation: yup.string().required("Nation is required."),
-    totalReviews: yup.number().integer().typeError("Total reviews must be a number.").required(),
-    avrStars: yup
-        .number()
-        .min(0, "Average stars must not be less than 0.")
-        .max(5, "Average stars must not be greater than 5.")
-        .typeError("Average stars must be a number.")
-        .required(),
     director: yup.string().required("Director is required."),
     // movieCategoryIds: yup
     //     .string()
@@ -38,7 +32,7 @@ const schema = yup.object().shape({
         .array()
         .of(
             yup.object().shape({
-                base64: yup.string().url().required("Link is required."),
+                base64: yup.mixed(),
                 isThumb: yup.boolean().required()
             })
         )
@@ -48,6 +42,7 @@ const schema = yup.object().shape({
 function Movies() {
     const [visible, setVisible] = useState(false);
     const [activeVisible, setActiveVisible] = useState(false);
+    const [deletingMode, setDeletingMode] = useState(false);
     const [type, setType] = useState("");
     const [title, setTitle] = useState("All");
     const [isActive, setActive] = useState(false);
@@ -91,7 +86,7 @@ function Movies() {
     } = useForm<IMovie>({
         resolver: yupResolver(schema),
         defaultValues: {
-            moviePosters: [{ base64: "", isThumb: false }]
+            moviePosters: [{ isThumb: false }]
         }
     });
 
@@ -107,45 +102,62 @@ function Movies() {
         const trailerLink = data.trailerLink;
         const releaseDate = convertReleaseDate(data.releaseDate);
         const nation = data.nation;
-        const totalReviews = data.totalReviews;
-        const avrStars = data.avrStars;
         const director = data.director;
         const movieCategoryIds = movieCategories.map((category) => category.id);
         const movieParticipantIds = movieParticipants.map((participant) => participant.id);
-        const moviePosters = data.moviePosters;
+        const base64Promises = data.moviePosters.map(async (poster) => ({
+            ...poster,
+            base64: await convert(poster.base64[0])
+        }));
 
-        await axios
-            .post(
-                "/movies",
-                {
-                    name,
-                    duration,
-                    description,
-                    trailerLink,
-                    releaseDate,
-                    nation,
-                    totalReviews,
-                    avrStars,
-                    isActive,
-                    director,
-                    movieCategoryIds,
-                    movieParticipantIds,
-                    moviePosters
-                },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
-                    }
-                }
-            )
-            .then(() => {
-                toast("Create movie successfully!");
-                reset();
+        Promise.all(base64Promises)
+            .then((updatedPosters) => {
+                axios
+                    .post(
+                        "/movies",
+                        {
+                            name,
+                            duration,
+                            description,
+                            trailerLink,
+                            releaseDate,
+                            nation,
+                            totalReviews: 0,
+                            avrStars: 0,
+                            isActive,
+                            director,
+                            movieCategoryIds,
+                            movieParticipantIds,
+                            moviePosters: updatedPosters
+                        },
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                            }
+                        }
+                    )
+                    .then(() => {
+                        toast("Create movie successfully!");
+                        reset();
+                    })
+                    .catch(() => {
+                        toast("Create movie failed!");
+                    });
             })
-            .catch(() => {
-                toast("Create movie failed!");
+            .catch((error) => {
+                console.error("Failed to convert base64:", error);
             });
+    };
+
+    const convert = async (file: File) => {
+        if (file) {
+            try {
+                return await convertToBase64(file);
+            } catch (error) {
+                console.error("Failed to convert image to base64:", error);
+            }
+        }
     };
 
     useEffect(() => {
@@ -306,7 +318,12 @@ function Movies() {
                             </i>
                             Create
                         </button>
-                        <button className="rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 w-[112px]">
+                        <button
+                            onClick={() => setDeletingMode(!deletingMode)}
+                            className={`rounded-xl border-blue border hover:border-primary ${
+                                deletingMode ? "border-mdRed bg-mdRed" : ""
+                            } hover:bg-primary flex items-center justify-center p-3 w-[112px]`}
+                        >
                             <i className="mr-1">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -325,7 +342,8 @@ function Movies() {
                         </button>
                     </div>
                 </div>
-                <MoviesList type={type} />
+                {deletingMode && <div className="">Select a movie below to delete.</div>}
+                <MoviesList type={type} deletingMode={deletingMode} />
             </div>
             <Portal>
                 <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
@@ -442,7 +460,9 @@ function Movies() {
                                         />
                                         {<span className="text-deepRed">{errors.duration?.message}</span>}
                                     </div>
-                                    <div className="flex gap-2 flex-col flex-1">
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex gap-2 flex-col">
                                         <label htmlFor="releaseDate" className="flex gap-1 mb-1 items-center">
                                             Release date
                                             <IsRequired />
@@ -456,36 +476,6 @@ function Movies() {
                                         />
                                         {<span className="text-deepRed">{errors.releaseDate?.message}</span>}
                                     </div>
-                                </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="flex gap-2 flex-col">
-                                        <label htmlFor="totalReviews" className="flex gap-1 mb-1 items-center">
-                                            Total reviews
-                                            <IsRequired />
-                                        </label>
-                                        <input
-                                            type="number"
-                                            id="totalReviews"
-                                            placeholder="Ex: 27"
-                                            {...register("totalReviews")}
-                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                        />
-                                        {<span className="text-deepRed">{errors.totalReviews?.message}</span>}
-                                    </div>
-                                    <div className="flex gap-2 flex-col">
-                                        <label htmlFor="averageStars" className="flex gap-1 mb-1 items-center">
-                                            Average stars
-                                            <IsRequired />
-                                        </label>
-                                        <input
-                                            type="number"
-                                            id="averageStars"
-                                            {...register("avrStars")}
-                                            placeholder="Ex: 5"
-                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                        />
-                                        {<span className="text-deepRed">{errors.avrStars?.message}</span>}
-                                    </div>
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="active" className="flex gap-1 mb-1 items-center">
                                             Active
@@ -498,7 +488,7 @@ function Movies() {
                                             render={(attrs) => (
                                                 <div
                                                     {...attrs}
-                                                    className={`flex w-[188px] text-white p-2 rounded-bl-lg rounded-br-lg flex-col bg-background outline-1 outline-border outline justify-center ${
+                                                    className={`flex w-[290px] text-white p-2 rounded-bl-lg rounded-br-lg flex-col bg-background outline-1 outline-border outline justify-center ${
                                                         activeVisible ? "outline-primary" : ""
                                                     }`}
                                                 >
@@ -751,6 +741,8 @@ function Movies() {
                                                 <IsRequired />
                                             </label>
                                             <input
+                                                type="file"
+                                                // onChange={(e) => handleFileInputChange(e, index)}
                                                 placeholder="Poster link..."
                                                 id={`poster-${index}`}
                                                 {...register(`moviePosters.${index}.base64` as const)}
@@ -787,7 +779,7 @@ function Movies() {
                                     <button
                                         type="button"
                                         className="outline outline-1 outline-blue px-5 py-3 rounded-lg hover:outline-primary hover:bg-primary"
-                                        onClick={() => append({ base64: "", isThumb: false })}
+                                        onClick={() => append({ isThumb: false })}
                                     >
                                         Add new poster
                                     </button>

@@ -20,7 +20,8 @@ export const theme = {
         border: "#373845",
         block: "#262a38",
         red: "#e69473",
-        deepRed: "#ff0000"
+        deepRed: "#ff0000",
+        mdRed: "#ff5f56"
     },
     extend: {}
 };

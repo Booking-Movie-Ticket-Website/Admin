@@ -5,8 +5,8 @@ interface IMovie {
     trailerLink: string;
     releaseDate: Date;
     nation: string;
-    totalReviews: number;
-    avrStars: number;
+    // totalReviews: number;
+    // avrStars: number;
     director: string;
     // movieCategoryIds: string;
     // movieParticipantIds: string;
@@ -14,6 +14,6 @@ interface IMovie {
 }
 
 interface IMoviePosters {
-    base64: string;
+    base64?: File;
     isThumb: boolean;
 }

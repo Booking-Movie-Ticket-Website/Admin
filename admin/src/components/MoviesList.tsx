@@ -14,9 +14,10 @@ interface Movie {
 
 interface Props {
     type: string;
+    deletingMode: boolean;
 }
 
-const MoviesList: React.FC<Props> = ({ type }) => {
+const MoviesList: React.FC<Props> = ({ type, deletingMode }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -47,6 +48,7 @@ const MoviesList: React.FC<Props> = ({ type }) => {
                                     name={movie.name}
                                     director={movie.director}
                                     img={movie.moviePosters[0].link}
+                                    deletingMode={deletingMode}
                                 />
                             ))
                         ) : (

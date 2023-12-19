@@ -6,6 +6,10 @@ import store from "./store";
 import { Provider } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import HashLoader from "react-spinners/HashLoader";
+import { useAppDispatch, useAppSelector } from "./hook.ts";
+
+// const isLoading =  useAppSelector((state) => state. )
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
@@ -24,6 +28,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                     pauseOnHover
                     theme="dark"
                 />
+                <div className="relative">loading</div>
             </BrowserRouter>
         </Provider>
     </React.StrictMode>

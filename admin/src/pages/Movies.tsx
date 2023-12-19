@@ -11,6 +11,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import IsRequired from "~/icons/IsRequired";
 import convertReleaseDate from "~/utils/convertReleaseDate";
 import { convertToBase64 } from "~/utils/convertToBase64";
+import HashLoader from "react-spinners/HashLoader";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),
@@ -46,6 +47,7 @@ function Movies() {
     const [type, setType] = useState("");
     const [title, setTitle] = useState("All");
     const [isActive, setActive] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState(
         Array<{
             id: string;
@@ -96,6 +98,7 @@ function Movies() {
     });
 
     const onSubmit: SubmitHandler<IMovie> = async (data) => {
+        setLoading(true);
         const name = data.name;
         const duration = data.duration;
         const description = data.description;
@@ -138,6 +141,7 @@ function Movies() {
                         }
                     )
                     .then(() => {
+                        setLoading(false);
                         toast("Create movie successfully!");
                         reset();
                     })
@@ -181,6 +185,8 @@ function Movies() {
                 .catch((error) => console.error(error));
         })();
     }, []);
+
+    useEffect(() => {}, [loading]);
 
     return (
         <>
@@ -342,11 +348,24 @@ function Movies() {
                         </button>
                     </div>
                 </div>
-                {deletingMode && <div className="">Select a movie below to delete.</div>}
+                {deletingMode && (
+                    <div className="shadow-xl rounded-xl bg-block mb-6">
+                        <div className="bg-primary h-6 rounded-tr-xl rounded-tl-xl"></div>
+                        <div className="p-6 text-[15px]">Select a movie below to delete.</div>
+                    </div>
+                )}
                 <MoviesList type={type} deletingMode={deletingMode} />
             </div>
             <Portal>
                 <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
+                    <HashLoader
+                        loading={loading}
+                        size={150}
+                        aria-label="Loading Spinner"
+                        data-testid="loader"
+                        className="!absolute top-[50%] left-[50%] z-[60] mt-[-75px] ml-[-75px]"
+                        color="#8d7cdd"
+                    />
                     <div className="flex items-center justify-center">
                         <div className="border border-blue p-8 bg-background relative rounded-xl max-h-[810px] max-w-[662px] overflow-y-scroll no-scrollbar">
                             <button

@@ -6,7 +6,7 @@ import SkeletonItem from "./SkeletonItem";
 import ToolTip from "@tippyjs/react";
 
 interface Movie {
-    id: number;
+    id: string;
     name: string;
     director: string;
     moviePosters: Array<{ id: number; link: string }>;
@@ -25,7 +25,7 @@ const MoviesList: React.FC<Props> = ({ type, deletingMode }) => {
         setLoading(true);
         (async () => {
             await axios
-                .get(`/movies?page=1&take=10&filterMovies=${type}`, { headers: { "Content-Type": "application/json" } })
+                .get(`/movies?page=1&take=20&filterMovies=${type}`, { headers: { "Content-Type": "application/json" } })
                 .then((response) => {
                     setData(response.data.data);
                     setLoading(false);

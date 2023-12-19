@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import axios from "~/utils/axios";
 import usePortal from "react-cool-portal";
 import { toast } from "react-toastify";
@@ -14,6 +14,7 @@ interface Props {
 
 const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode }) => {
     const [selectedId, setSelectedId] = useState(String);
+    const overlayRef = useRef<HTMLDivElement>(null);
     const { Portal, hide, show } = usePortal({
         defaultShow: false
     });
@@ -47,14 +48,34 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode }) =
                         onClick={() => {
                             setSelectedId(id);
                             show();
+                            overlayRef.current?.classList.replace("hidden", "flex");
                         }}
                     >
-                        <div className="group overflow-hidden rounded-xl aspect-square shadow-sm">
+                        <div className="group overflow-hidden rounded-xl aspect-square shadow-sm relative">
                             <img
                                 src={img}
                                 alt="movie poster"
                                 className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
                             />
+
+                            <div
+                                ref={overlayRef}
+                                className="absolute top-0 bottom-0 right-0 left-0 hidden justify-center items-center"
+                            >
+                                <i className="icon">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 48 48"
+                                        width="130"
+                                        height="130"
+                                    >
+                                        <path
+                                            className="fill-primary"
+                                            d="M40.6 12.1L17 35.7 7.4 26.1 4.6 29 17 41.3 43.4 14.9z"
+                                        />
+                                    </svg>
+                                </i>
+                            </div>
                         </div>
                     </div>
                 ) : (
@@ -81,7 +102,10 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode }) =
                     <div className="flex items-center justify-center">
                         <div className="rounded-xl py-6 px-12 border border-primary bg-background flex flex-col items-center justify-center relative">
                             <button
-                                onClick={hide}
+                                onClick={() => {
+                                    hide();
+                                    overlayRef.current?.classList.replace("flex", "hidden");
+                                }}
                                 className="absolute right-3 top-3 border border-blue rounded-full p-1 hover:border-primary hover:bg-primary"
                             >
                                 <i>
@@ -99,7 +123,7 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode }) =
                                     </svg>
                                 </i>
                             </button>
-                            <p className="mb-4 mt-4">
+                            <p className="mb-4 mt-4 text-[15px]">
                                 Delete movie <span className="text-blue">"{name}"</span>?
                             </p>
                             <div className="flex gap-6">
@@ -110,7 +134,10 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode }) =
                                     Delete
                                 </button>
                                 <button
-                                    onClick={hide}
+                                    onClick={() => {
+                                        hide();
+                                        overlayRef.current?.classList.replace("flex", "hidden");
+                                    }}
                                     className="px-5 py-2 border border-blue hover:border-primary hover:bg-primary rounded-lg"
                                 >
                                     Cancel

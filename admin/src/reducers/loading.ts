@@ -9,7 +9,7 @@ const initialState: LoadingState = {
     isLoading: false
 };
 
-const loadingReducer = (state = initialState, action: LoadingAction): LoadingState => {
+export default function (state = initialState, action: LoadingAction) {
     switch (action.type) {
         case START_LOADING:
             return { ...state, isLoading: true };
@@ -18,6 +18,4 @@ const loadingReducer = (state = initialState, action: LoadingAction): LoadingSta
         default:
             return state;
     }
-};
-
-export default loadingReducer;
+}

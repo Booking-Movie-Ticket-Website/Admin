@@ -11,7 +11,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import IsRequired from "~/icons/IsRequired";
 import convertReleaseDate from "~/utils/convertReleaseDate";
 import { convertToBase64 } from "~/utils/convertToBase64";
-import HashLoader from "react-spinners/HashLoader";
+import { useAppDispatch } from "~/hook";
+import { startLoading, stopLoading } from "~/actions/loading";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),
@@ -21,14 +22,6 @@ const schema = yup.object().shape({
     releaseDate: yup.date().required("Release date is required.").typeError("Release date must be a date."),
     nation: yup.string().required("Nation is required."),
     director: yup.string().required("Director is required."),
-    // movieCategoryIds: yup
-    //     .string()
-    //     .matches(/^\d+(,\s*\d+)*$/, "Must be a comma-separated list of numbers.")
-    //     .required(),
-    // movieParticipantIds: yup
-    //     .string()
-    //     .matches(/^\d+(,\s*\d+)*$/, "Must be a comma-separated list of numbers.")
-    //     .required(),
     moviePosters: yup
         .array()
         .of(
@@ -41,13 +34,13 @@ const schema = yup.object().shape({
 });
 
 function Movies() {
+    const dispatch = useAppDispatch();
     const [visible, setVisible] = useState(false);
     const [activeVisible, setActiveVisible] = useState(false);
     const [deletingMode, setDeletingMode] = useState(false);
     const [type, setType] = useState("");
     const [title, setTitle] = useState("All");
     const [isActive, setActive] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState(
         Array<{
             id: string;
@@ -98,7 +91,8 @@ function Movies() {
     });
 
     const onSubmit: SubmitHandler<IMovie> = async (data) => {
-        setLoading(true);
+        hide();
+        dispatch(startLoading());
         const name = data.name;
         const duration = data.duration;
         const description = data.description;
@@ -141,7 +135,7 @@ function Movies() {
                         }
                     )
                     .then(() => {
-                        setLoading(false);
+                        dispatch(stopLoading());
                         toast("Create movie successfully!");
                         reset();
                     })
@@ -185,8 +179,6 @@ function Movies() {
                 .catch((error) => console.error(error));
         })();
     }, []);
-
-    useEffect(() => {}, [loading]);
 
     return (
         <>
@@ -358,14 +350,6 @@ function Movies() {
             </div>
             <Portal>
                 <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
-                    <HashLoader
-                        loading={loading}
-                        size={150}
-                        aria-label="Loading Spinner"
-                        data-testid="loader"
-                        className="!absolute top-[50%] left-[50%] z-[60] mt-[-75px] ml-[-75px]"
-                        color="#8d7cdd"
-                    />
                     <div className="flex items-center justify-center">
                         <div className="border border-blue p-8 bg-background relative rounded-xl max-h-[810px] max-w-[662px] overflow-y-scroll no-scrollbar">
                             <button

@@ -15,9 +15,10 @@ interface Movie {
 interface Props {
     type: string;
     deletingMode: boolean;
+    reloadFlag: boolean;
 }
 
-const MoviesList: React.FC<Props> = ({ type, deletingMode }) => {
+const MoviesList: React.FC<Props> = ({ type, deletingMode, reloadFlag }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -32,7 +33,7 @@ const MoviesList: React.FC<Props> = ({ type, deletingMode }) => {
                 })
                 .catch((error) => console.error(error));
         })();
-    }, [type]);
+    }, [type, reloadFlag]);
 
     return (
         <div className="mb-10">

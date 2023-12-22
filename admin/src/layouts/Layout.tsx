@@ -28,6 +28,7 @@ function Layout() {
                     />
                 )}
             </LoaderPortal>
+            <div id="react-cool-portal"></div>
         </>
     );
 }

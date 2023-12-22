@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import usePortal from "react-cool-portal";
 import { useForm, SubmitHandler, useFieldArray } from "react-hook-form";
 import axios from "~/utils/axios";
-import { toast } from "react-toastify";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import IsRequired from "~/icons/IsRequired";
@@ -13,6 +12,7 @@ import convertReleaseDate from "~/utils/convertReleaseDate";
 import { convertToBase64 } from "~/utils/convertToBase64";
 import { useAppDispatch } from "~/hook";
 import { startLoading, stopLoading } from "~/actions/loading";
+import { sendMessage } from "~/actions/message";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),
@@ -41,6 +41,7 @@ function Movies() {
     const [type, setType] = useState("");
     const [title, setTitle] = useState("All");
     const [isActive, setActive] = useState(false);
+    const [reloadFlag, setReloadFlag] = useState(false);
     const [categories, setCategories] = useState(
         Array<{
             id: string;
@@ -76,8 +77,7 @@ function Movies() {
         control,
         register,
         handleSubmit,
-        formState: { errors },
-        reset
+        formState: { errors }
     } = useForm<IMovie>({
         resolver: yupResolver(schema),
         defaultValues: {
@@ -136,11 +136,13 @@ function Movies() {
                     )
                     .then(() => {
                         dispatch(stopLoading());
-                        toast("Create movie successfully!");
-                        reset();
+                        dispatch(sendMessage("Created sucessfully!"));
+                        setReloadFlag(true);
                     })
-                    .catch(() => {
-                        toast("Create movie failed!");
+                    .catch((error) => {
+                        dispatch(stopLoading());
+                        dispatch(sendMessage("Created failed!"));
+                        console.error(error);
                     });
             })
             .catch((error) => {
@@ -179,6 +181,13 @@ function Movies() {
                 .catch((error) => console.error(error));
         })();
     }, []);
+
+    useEffect(() => {
+        console.log("reload");
+        if (reloadFlag) {
+            setReloadFlag(true);
+        }
+    }, [reloadFlag]);
 
     return (
         <>
@@ -287,7 +296,10 @@ function Movies() {
                     </div>
                     <div className="flex gap-3 items-center">
                         <button
-                            onClick={() => show()}
+                            onClick={() => {
+                                setDeletingMode(false);
+                                show();
+                            }}
                             className="rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 w-[112px]"
                         >
                             <i className="mr-[3px]">
@@ -346,7 +358,7 @@ function Movies() {
                         <div className="p-6 text-[15px]">Select a movie below to delete.</div>
                     </div>
                 )}
-                <MoviesList type={type} deletingMode={deletingMode} />
+                <MoviesList type={type} deletingMode={deletingMode} reloadFlag={reloadFlag} />
             </div>
             <Portal>
                 <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">

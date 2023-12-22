@@ -10,18 +10,22 @@ function Movie() {
         (async () => {
             await axios
                 .get(`/movies/${id}`, { headers: { "Content-Type": "application/json" } })
-                .then((response) => setData(response))
+                .then((response) => setData(response.data))
                 .catch((error) => console.error(error));
         })();
     }, [id]);
 
-    console.log(data);
+    console.log(data.moviePosters.filter((poster) => poster.isThumb === true));
 
     return (
         data && (
             <div className="flex w-full gap-4">
                 <div className="w-1/2">
-                    <img src={data.moviePosters[0].link} alt="poster" className="rounded-xl" />
+                    <img
+                        // src={data.moviePosters.filter((poster) => poster.isThumb === true).link}
+                        alt="poster"
+                        className="rounded-xl"
+                    />
                 </div>
                 <div className="w-1/2"></div>
             </div>

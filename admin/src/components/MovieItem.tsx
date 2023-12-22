@@ -3,6 +3,8 @@ import { useState, useRef } from "react";
 import axios from "~/utils/axios";
 import usePortal from "react-cool-portal";
 import { toast } from "react-toastify";
+import { useAppDispatch } from "~/hook";
+import { startLoading, stopLoading } from "~/actions/loading";
 
 interface Props {
     name: string;
@@ -18,8 +20,11 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode }) =
     const { Portal, hide, show } = usePortal({
         defaultShow: false
     });
+    const dispatch = useAppDispatch();
 
     const handleDelete = async () => {
+        hide();
+        dispatch(startLoading());
         await axios
             .delete(`/movies/${selectedId}`, {
                 headers: {
@@ -28,9 +33,9 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode }) =
                 }
             })
             .then(() => {
-                toast("Delete successfully!");
-                hide();
+                dispatch(stopLoading());
                 window.location.reload();
+                toast("Delete successfully!");
             })
             .catch((error) => {
                 console.error(error);

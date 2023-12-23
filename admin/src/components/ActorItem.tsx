@@ -55,13 +55,13 @@ const ActorItem: React.FC<Props> = ({ fullName, profilePicture, deletingMode, id
                     key={id}
                     className={`cursor-pointer py-2 px-4 border border-blue hover:border-primary hover:bg-primary text-left rounded-xl flex justify-between items-center p-2 `}
                 >
-                    <div className="flex items-center nowrap">
+                    <div className="flex items-center">
                         <img
                             src={profilePicture}
                             alt="participant avatar"
                             className="w-10 rounded-full aspect-square mr-4"
                         />
-                        {fullName}
+                        <span className="whitespace-nowrap overflow-hidden text-ellipsis w-[200px]">{fullName}</span>
                     </div>
                 </li>
             ) : (
@@ -70,13 +70,13 @@ const ActorItem: React.FC<Props> = ({ fullName, profilePicture, deletingMode, id
                     key={id}
                     className={`cursor-pointer py-2 px-4 border border-blue hover:border-primary hover:bg-primary text-left rounded-xl flex justify-between items-center p-2 `}
                 >
-                    <div className="flex items-center nowrap">
+                    <div className="flex items-center">
                         <img
                             src={profilePicture}
                             alt="participant avatar"
                             className="w-10 rounded-full aspect-square mr-4"
                         />
-                        {fullName}
+                        <span className="whitespace-nowrap overflow-hidden text-ellipsis w-[200px]">{fullName}</span>
                     </div>
                 </a>
             )}

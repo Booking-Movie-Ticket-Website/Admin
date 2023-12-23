@@ -2,8 +2,14 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "~/utils/axios";
 
+interface MovieData {
+    moviePosters: Array<{
+        link: string;
+        isThumb: boolean;
+    }>;
+}
 function Movie() {
-    const [data, setData] = useState({});
+    const [data, setData] = useState<MovieData>();
     const { id } = useParams();
 
     useEffect(() => {
@@ -15,14 +21,12 @@ function Movie() {
         })();
     }, [id]);
 
-    console.log(data.moviePosters.filter((poster) => poster.isThumb === true));
-
     return (
         data && (
             <div className="flex w-full gap-4">
                 <div className="w-1/2">
                     <img
-                        // src={data.moviePosters.filter((poster) => poster.isThumb === true).link}
+                        src={data.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
                         alt="poster"
                         className="rounded-xl"
                     />

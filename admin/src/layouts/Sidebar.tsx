@@ -104,7 +104,7 @@ function Sidebar() {
                     )}
                 </NavLink>
                 <NavLink
-                    to="/users"
+                    to="/actors"
                     className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
                 >
                     {({ isActive }) => (
@@ -115,7 +115,7 @@ function Sidebar() {
                                     viewBox="0 0 256 256"
                                     width={26}
                                     height={26}
-                                    id="users"
+                                    id="actors"
                                 >
                                     <rect width="24" height="24" fill="none"></rect>
                                     <circle
@@ -142,7 +142,7 @@ function Sidebar() {
                                     ></path>
                                 </svg>
                             </i>
-                            Users
+                            Actors
                         </>
                     )}
                 </NavLink>

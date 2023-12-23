@@ -9,6 +9,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import { useEffect } from "react";
 import { useAppSelector } from "./hook";
 import { toast } from "react-toastify";
+import Actors from "./pages/Actors";
 
 function App() {
     const root = document.querySelector("#root");
@@ -37,6 +38,7 @@ function App() {
                     <Route index element={<Dashboard />} />
                     <Route path="/movies" element={<Movies />} />
                     <Route path="/movies/:id" element={<Movie />} />
+                    <Route path="/actors" element={<Actors />} />
                 </Route>
             </Route>
         </Routes>

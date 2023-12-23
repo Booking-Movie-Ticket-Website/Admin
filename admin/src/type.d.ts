@@ -17,3 +17,17 @@ interface IMoviePosters {
     base64?: File;
     isThumb: boolean;
 }
+
+interface IActors {
+    fullName: string;
+    id: string;
+    profilePicture: string;
+}
+
+interface IActor {
+    profession: string;
+    fullName: string;
+    dateOfBirth: Date;
+    biography: string;
+    nationality: string;
+}

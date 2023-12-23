@@ -13,7 +13,10 @@ function Layout() {
                 <Header />
                 <Sidebar />
                 <div className="bg-background w-full pl-[240px] pt-[74px] pb-[90px] min-h-[100vh]">
-                    <Outlet />
+                    <div className="p-8">
+                        {" "}
+                        <Outlet />
+                    </div>
                 </div>
             </div>
             <LoaderPortal>

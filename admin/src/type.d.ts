@@ -31,3 +31,39 @@ interface IActor {
     biography: string;
     nationality: string;
 }
+
+interface IMovieData {
+    avrStars: number;
+    description: string;
+    director: string;
+    duration: number;
+    id: string;
+    isActive: boolean;
+    name: string;
+    nation: string;
+    releaseDate: string;
+    reviews: [];
+    totalReviews: string;
+    trailerLink: string;
+    moviePosters: Array<{
+        link: string;
+        isThumb: boolean;
+    }>;
+    movieCategories: Array<{
+        id: string;
+        movieId: string;
+        categoryId: string;
+        category: { name: string };
+    }>;
+    movieParticipants: Array<{
+        id: string;
+        movieId: string;
+        profession: string;
+        peopleId: string;
+        people: {
+            fullName: string;
+            profilePicture: string;
+            nationality: string;
+        };
+    }>;
+}

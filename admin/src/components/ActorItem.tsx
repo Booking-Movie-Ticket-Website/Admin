@@ -53,7 +53,7 @@ const ActorItem: React.FC<Props> = ({ fullName, profilePicture, deletingMode, id
                         overlayRef.current?.classList.replace("hidden", "flex");
                     }}
                     key={id}
-                    className={`cursor-pointer py-2 px-4 border border-blue hover:border-primary hover:bg-primary text-left rounded-xl flex justify-between items-center p-2 `}
+                    className={`cursor-pointer py-2 px-4 border border-blue bg-background hover:border-primary hover:bg-primary text-left rounded-xl flex justify-between items-center p-2 `}
                 >
                     <div className="flex items-center">
                         <img
@@ -61,14 +61,16 @@ const ActorItem: React.FC<Props> = ({ fullName, profilePicture, deletingMode, id
                             alt="participant avatar"
                             className="w-10 rounded-full aspect-square mr-4"
                         />
-                        <span className="whitespace-nowrap overflow-hidden text-ellipsis w-[200px]">{fullName}</span>
+                        <span className="whitespace-nowrap overflow-hidden text-ellipsis w-[200px] font-medium">
+                            {fullName}
+                        </span>
                     </div>
                 </li>
             ) : (
                 <a
                     href={`/actors/${id}`}
                     key={id}
-                    className={`cursor-pointer py-2 px-4 border border-blue hover:border-primary hover:bg-primary text-left rounded-xl flex justify-between items-center p-2 `}
+                    className={`cursor-pointer py-2 px-4 border border-blue bg-background hover:border-primary hover:bg-primary text-left rounded-xl flex justify-between items-center p-2 `}
                 >
                     <div className="flex items-center">
                         <img
@@ -76,7 +78,9 @@ const ActorItem: React.FC<Props> = ({ fullName, profilePicture, deletingMode, id
                             alt="participant avatar"
                             className="w-10 rounded-full aspect-square mr-4"
                         />
-                        <span className="whitespace-nowrap overflow-hidden text-ellipsis w-[200px]">{fullName}</span>
+                        <span className="whitespace-nowrap overflow-hidden text-ellipsis w-[200px] font-medium">
+                            {fullName}
+                        </span>
                     </div>
                 </a>
             )}

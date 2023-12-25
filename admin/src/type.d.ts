@@ -48,6 +48,7 @@ interface IMovieData {
     moviePosters: Array<{
         link: string;
         isThumb: boolean;
+        id: string;
     }>;
     movieCategories: Array<{
         id: string;

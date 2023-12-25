@@ -39,9 +39,7 @@ function Movie() {
     const { Portal, show, hide } = usePortal({ defaultShow: false });
     const [isActive, setActive] = useState(false);
     const [reloadFlag, setReloadFlag] = useState(false);
-    const [deleteMovieCategoryIds, setDeleteMovieCategoryIds] = useState<string[]>([]);
-    const [deleteMovieParticipantIds, setDeleteMovieParticipantIds] = useState<string[]>([]);
-    const [deleteMoviePosterIds, setDeleteMoviePosterIds] = useState([]);
+    // const [deleteMoviePosterIds, setDeleteMoviePosterIds] = useState([]);
     const {
         control,
         register,
@@ -58,30 +56,40 @@ function Movie() {
         control,
         name: "moviePosters"
     });
-    const [categories, setCategories] = useState(
+    const [allCategories, setAllCategories] = useState(
         Array<{
             id: string;
             name: string;
         }>
     );
+    const [movieCategoryIds, setMovieCategoryIds] = useState<string[]>([]);
     const [movieCategories, setMovieCategories] = useState<
         Array<{
             id: string;
             name: string;
         }>
     >([]);
-    const [participants, setParticipants] = useState(
+    const [allParticipants, setAllParticipants] = useState(
         Array<{
             id: string;
             fullName: string;
             profilePicture: string;
         }>
     );
+    const [movieParticipantIds, setMovieParticipantIds] = useState<string[]>([]);
     const [movieParticipants, setMovieParticipants] = useState<
         Array<{
             id: string;
             fullName: string;
             profilePicture: string;
+        }>
+    >([]);
+    const [moviePosters, setMoviePosters] = useState<
+        Array<{
+            isThumb: boolean;
+            link: string;
+            id: string;
+            movieId: string;
         }>
     >([]);
     const [participantsMenuVisible, setParticipantsMenuVisible] = useState(false);
@@ -102,6 +110,11 @@ function Movie() {
                 .get(`/movies/${id}`, { headers: { "Content-Type": "application/json" } })
                 .then((response) => {
                     setData(response.data);
+                    setMovieCategoryIds(
+                        response.data.movieCategories.map(
+                            (movie: { categoryId: string; category: { name: string } }) => movie.categoryId
+                        )
+                    );
                     setMovieCategories(
                         response.data.movieCategories.map(
                             (movie: { categoryId: string; category: { name: string } }) => ({
@@ -110,12 +123,28 @@ function Movie() {
                             })
                         )
                     );
+                    setMovieParticipantIds(
+                        response.data.movieParticipants.map(
+                            (actor: { peopleId: string; people: { fullName: string; profilePicture: string } }) =>
+                                actor.peopleId
+                        )
+                    );
                     setMovieParticipants(
                         response.data.movieParticipants.map(
                             (actor: { peopleId: string; people: { fullName: string; profilePicture: string } }) => ({
                                 id: actor.peopleId,
                                 fullName: actor.people.fullName,
                                 profilePicture: actor.people.profilePicture
+                            })
+                        )
+                    );
+                    setMoviePosters(
+                        response.data.moviePosters.map(
+                            (poster: { isThumb: boolean; link: string; id: string; movieId: string }) => ({
+                                id: poster.id,
+                                link: poster.link,
+                                isThumb: poster.isThumb,
+                                movieId: poster.movieId
                             })
                         )
                     );
@@ -147,22 +176,22 @@ function Movie() {
                     .patch(
                         `/movies/${id}`,
                         {
-                            name,
-                            duration,
-                            description,
-                            trailerLink,
-                            releaseDate,
-                            nation,
-                            totalReviews: 0,
-                            avrStars: 0,
-                            isActive,
-                            director,
-                            movieCategoryIds: movieCategoryIds,
-                            movieParticipantIds,
-                            moviePosters: updatedPosters,
-                            deleteMovieCategoryIds: deleteMovieCategoryIds,
-                            deleteMovieParticipantIds: deleteMovieParticipantIds,
-                            deleteMoviePosterIds: []
+                            name
+                            // duration,
+                            // description,
+                            // trailerLink,
+                            // releaseDate,
+                            // nation,
+                            // totalReviews: 0,
+                            // avrStars: 0,
+                            // isActive,
+                            // director,
+                            // movieCategoryIds: movieCategoryIds,
+                            // movieParticipantIds,
+                            // moviePosters: updatedPosters,
+                            // deleteMovieCategoryIds: deleteMovieCategoryIds,
+                            // deleteMovieParticipantIds: deleteMovieParticipantIds,
+                            // deleteMoviePosterIds: []
                         },
                         {
                             headers: {
@@ -205,7 +234,7 @@ function Movie() {
                         "Content-Type": "application/json"
                     }
                 })
-                .then((response) => setCategories(response.data))
+                .then((response) => setAllCategories(response.data))
                 .catch((error) => console.error(error));
         })();
 
@@ -214,7 +243,7 @@ function Movie() {
                 .get("/people/no-pagination", {
                     headers: { "Content-Type": "application/json" }
                 })
-                .then((response) => setParticipants(response.data))
+                .then((response) => setAllParticipants(response.data))
                 .catch((error) => console.error(error));
         })();
 
@@ -234,17 +263,7 @@ function Movie() {
         }
     }, [reloadFlag]);
 
-    useEffect(() => {
-        const filteredArray = movieCategories?.filter((movie) => !deleteMovieCategoryIds.includes(movie.id));
-        setMovieCategories(filteredArray);
-    }, [deleteMovieCategoryIds]);
-
-    useEffect(() => {
-        const filteredArray = movieParticipants?.filter((movie) => !deleteMovieParticipantIds.includes(movie.id));
-        setMovieParticipants(filteredArray);
-    }, [deleteMovieParticipantIds]);
-
-    console.log(participants);
+    console.log(data);
 
     return (
         data && (
@@ -599,19 +618,23 @@ function Movie() {
                                             <IsRequired />
                                         </label>
                                         <div className="flex gap-2 items-center overflow-x-scroll no-scrollbar">
-                                            {movieCategories?.map((movie) => (
+                                            {movieCategories?.map((category) => (
                                                 <span
                                                     className="py-1 px-2 text-[13px] whitespace-nowrap flex gap-1 items-center rounded-md border border-blue"
-                                                    key={movie.id}
+                                                    key={category.id}
                                                 >
-                                                    {movie.name}
+                                                    {category.name}
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            setDeleteMovieCategoryIds([
-                                                                ...deleteMovieCategoryIds,
-                                                                movie.id
-                                                            ]);
+                                                            setMovieCategoryIds(
+                                                                movieCategoryIds.filter((id) => id !== category.id)
+                                                            );
+                                                            setMovieCategories(
+                                                                movieCategories.filter(
+                                                                    (item) => item.id !== category.id
+                                                                )
+                                                            );
                                                         }}
                                                     >
                                                         <i>
@@ -634,17 +657,18 @@ function Movie() {
                                         </div>
                                         <div className="text-blue mt-1">All categories</div>
                                         <div className="flex gap-2 items-center overflow-x-scroll no-scrollbar mb-2">
-                                            {categories &&
-                                                categories.map((category) => (
+                                            {allCategories &&
+                                                allCategories.map((category) => (
                                                     <span
                                                         onClick={() => {
+                                                            setMovieCategoryIds([...movieCategoryIds, category.id]);
                                                             setMovieCategories([
                                                                 ...movieCategories,
                                                                 { id: category.id, name: category.name }
                                                             ]);
                                                         }}
                                                         className={`py-1 px-2 text-[13px] whitespace-nowrap rounded-md border border-blue hover:border-primary hover:bg-primary cursor-pointer ${
-                                                            movieCategories?.some((movie) => movie.id === category.id)
+                                                            movieCategoryIds?.some((id) => id === category.id)
                                                                 ? "opacity-50 pointer-events-none"
                                                                 : ""
                                                         }`}
@@ -661,26 +685,32 @@ function Movie() {
                                             <IsRequired />
                                         </label>
                                         <ul className="grid grid-cols-2 gap-4">
-                                            {movieParticipants.map((movieParticipant) => (
+                                            {movieParticipants?.map((participant) => (
                                                 <li
-                                                    key={movieParticipant.id}
+                                                    key={participant.id}
                                                     className={`cursor-pointer py-2 px-4 border border-blue hover:border-primary text-left rounded-lg flex justify-between items-center p-2 `}
                                                 >
                                                     <div className="flex items-center">
                                                         <img
-                                                            src={movieParticipant.profilePicture}
+                                                            src={participant.profilePicture}
                                                             alt="participant avatar"
                                                             className="w-8 rounded-full aspect-square mr-3"
                                                         />
-                                                        {movieParticipant.fullName}
+                                                        {participant.fullName}
                                                     </div>
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            setDeleteMovieParticipantIds([
-                                                                ...deleteMovieParticipantIds,
-                                                                movieParticipant.id
-                                                            ]);
+                                                            setMovieParticipantIds(
+                                                                movieParticipantIds.filter(
+                                                                    (id) => id !== participant.id
+                                                                )
+                                                            );
+                                                            setMovieParticipants(
+                                                                movieParticipants.filter(
+                                                                    (item) => item.id !== participant.id
+                                                                )
+                                                            );
                                                         }}
                                                     >
                                                         <i>
@@ -716,10 +746,14 @@ function Movie() {
                                                     }`}
                                                     {...attrs}
                                                 >
-                                                    {participants &&
-                                                        participants.map((participant) => (
+                                                    {allParticipants &&
+                                                        allParticipants.map((participant) => (
                                                             <li
-                                                                onClick={() =>
+                                                                onClick={() => {
+                                                                    setMovieParticipantIds([
+                                                                        ...movieParticipantIds,
+                                                                        participant.id
+                                                                    ]);
                                                                     setMovieParticipants([
                                                                         ...movieParticipants,
                                                                         {
@@ -727,13 +761,12 @@ function Movie() {
                                                                             fullName: participant.fullName,
                                                                             profilePicture: participant.profilePicture
                                                                         }
-                                                                    ])
-                                                                }
+                                                                    ]);
+                                                                }}
                                                                 key={participant.id}
                                                                 className={`cursor-pointer py-2 px-4 text-[13px] hover:bg-primary text-left rounded-lg flex items-center p-2 ${
-                                                                    movieParticipants.some(
-                                                                        (movieParticipant) =>
-                                                                            movieParticipant.id === participant.id
+                                                                    movieParticipantIds.some(
+                                                                        (id) => id === participant.id
                                                                     )
                                                                         ? "text-blue pointer-events-none"
                                                                         : ""
@@ -776,9 +809,44 @@ function Movie() {
                                             </div>
                                         </Tippy>
                                     </div>
-
                                     <div className="outline outline-1 outline-border my-2"></div>
                                     <div className="text-blue text-[15px]">Movie Posters</div>
+                                    <div className="flex gap-6 items-center">
+                                        {moviePosters.map((poster) => (
+                                            <div key={poster.id} className="relative">
+                                                <img src={poster.link} alt="poster" className="rounded-xl" />
+                                                {poster.isThumb && (
+                                                    <span className="absolute top-2 left-2 shadow-lg rounded-lg p-2 bg-background_80 flex justify-center items-center">
+                                                        Thumbnail
+                                                    </span>
+                                                )}
+                                                <button
+                                                    onClick={() => {
+                                                        setMoviePosters(
+                                                            moviePosters.filter((item) => item.id !== poster.id)
+                                                        );
+                                                    }}
+                                                    type="button"
+                                                    className="absolute top-2 right-2 bg-background_80 p-2 rounded-full shadow-lg hover:bg-primary"
+                                                >
+                                                    <i>
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            viewBox="0 0 24 24"
+                                                            width={16}
+                                                            height={16}
+                                                            id="close"
+                                                        >
+                                                            <path
+                                                                className="fill-white"
+                                                                d="M13.41,12l6.3-6.29a1,1,0,1,0-1.42-1.42L12,10.59,5.71,4.29A1,1,0,0,0,4.29,5.71L10.59,12l-6.3,6.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l6.29,6.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z"
+                                                            ></path>
+                                                        </svg>
+                                                    </i>
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
                                     {fields.map((field, index) => (
                                         <div
                                             key={field.id}

@@ -38,18 +38,24 @@ function Movie() {
     const { id } = useParams();
     const { Portal, show, hide } = usePortal({ defaultShow: false });
     const [isActive, setActive] = useState(false);
-    const [reloadFlag, setReloadFlag] = useState(false);
-    // const [deleteMoviePosterIds, setDeleteMoviePosterIds] = useState([]);
+    const [deleteMoviePosterIds, setDeleteMoviePosterIds] = useState<string[]>([]);
     const {
         control,
         register,
         handleSubmit,
+        setValue,
         formState: { errors }
     } = useForm<IMovie>({
         resolver: yupResolver(schema),
         defaultValues: {
             moviePosters: [{ isThumb: false }],
-            name: data?.name
+            name: "",
+            duration: 0,
+            description: "",
+            trailerLink: "",
+            releaseDate: new Date(),
+            nation: "",
+            director: ""
         }
     });
     const { fields, append, remove } = useFieldArray({
@@ -148,24 +154,43 @@ function Movie() {
                             })
                         )
                     );
+
+                    setActive(response.data.isActive);
+                    setValue("name", response.data.name || "");
+                    setValue("description", response.data.description || "");
+                    setValue("duration", response.data.duration || 0);
+                    setValue("trailerLink", response.data.trailerLink || "");
+                    setValue("releaseDate", response.data.releaseDate || new Date());
+                    setValue("nation", response.data.nation || "");
+                    setValue("director", response.data.director || "");
                 })
                 .catch((error) => console.error(error));
         })();
-    }, [id]);
+    }, [id, setValue]);
 
-    const onSubmit: SubmitHandler<IMovie> = async (data) => {
+    const onSubmit: SubmitHandler<IMovie> = async (formData) => {
         hide();
         dispatch(startLoading());
-        const name = data.name;
-        const duration = data.duration;
-        const description = data.description;
-        const trailerLink = data.trailerLink;
-        const releaseDate = convertReleaseDate(data.releaseDate);
-        const nation = data.nation;
-        const director = data.director;
-        const movieCategoryIds = movieCategories?.map((category) => category.id);
-        const movieParticipantIds = movieParticipants.map((participant) => participant.id);
-        const base64Promises = data.moviePosters.map(async (poster) => ({
+        const name = formData.name;
+        const duration = formData.duration;
+        const description = formData.description;
+        const trailerLink = formData.trailerLink;
+        const releaseDate = convertReleaseDate(formData.releaseDate);
+        const nation = formData.nation;
+        const director = formData.director;
+        const addMovieCategoryIds = movieCategoryIds.filter(
+            (id) => !data?.movieCategories.map((item) => item.categoryId).includes(id)
+        );
+        const deleteMovieCategoryIds = data?.movieCategories
+            .map((item) => item.categoryId)
+            .filter((id) => !movieCategoryIds.includes(id));
+        const addMovieParticipantIds = movieParticipantIds.filter(
+            (id) => !data?.movieParticipants.map((item) => item.peopleId).includes(id)
+        );
+        const deleteMovieParticipantIds = data?.movieParticipants
+            .map((item) => item.peopleId)
+            .filter((id) => !movieParticipantIds.includes(id));
+        const base64Promises = formData.moviePosters.map(async (poster) => ({
             ...poster,
             base64: await convert(poster.base64[0])
         }));
@@ -176,22 +201,22 @@ function Movie() {
                     .patch(
                         `/movies/${id}`,
                         {
-                            name
-                            // duration,
-                            // description,
-                            // trailerLink,
-                            // releaseDate,
-                            // nation,
-                            // totalReviews: 0,
-                            // avrStars: 0,
-                            // isActive,
-                            // director,
-                            // movieCategoryIds: movieCategoryIds,
-                            // movieParticipantIds,
-                            // moviePosters: updatedPosters,
-                            // deleteMovieCategoryIds: deleteMovieCategoryIds,
-                            // deleteMovieParticipantIds: deleteMovieParticipantIds,
-                            // deleteMoviePosterIds: []
+                            ...(data?.name !== name && { name }),
+                            ...(data?.duration !== duration && { duration }),
+                            ...(data?.description !== description && { description }),
+                            ...(data?.trailerLink !== trailerLink && { trailerLink }),
+                            ...(data?.releaseDate !== releaseDate && { releaseDate }),
+                            ...(data?.isActive !== isActive && { isActive }),
+                            ...(data?.director !== director && { director }),
+                            ...(data?.nation !== nation && { nation }),
+                            ...(addMovieCategoryIds.length > 0 && { addMovieCategoryIds }),
+                            ...(Array.isArray(deleteMovieCategoryIds) &&
+                                deleteMovieCategoryIds?.length > 0 && { deleteMovieCategoryIds }),
+                            ...(addMovieParticipantIds.length > 0 && { addMovieParticipantIds }),
+                            ...(Array.isArray(deleteMovieParticipantIds) &&
+                                deleteMovieParticipantIds?.length > 0 && { deleteMovieParticipantIds }),
+                            ...(updatedPosters[0].base64 && { addMoviePosters: updatedPosters }),
+                            ...(deleteMoviePosterIds.length > 0 && { deleteMoviePosterIds })
                         },
                         {
                             headers: {
@@ -203,7 +228,7 @@ function Movie() {
                     .then(() => {
                         dispatch(stopLoading());
                         dispatch(sendMessage("Updated sucessfully!"));
-                        setReloadFlag(true);
+                        setTimeout(() => window.location.reload(), 2000);
                     })
                     .catch((error) => {
                         dispatch(stopLoading());
@@ -256,12 +281,6 @@ function Movie() {
                 .catch((error) => console.error(error));
         })();
     }, [id]);
-
-    useEffect(() => {
-        if (reloadFlag) {
-            setReloadFlag(true);
-        }
-    }, [reloadFlag]);
 
     console.log(data);
 
@@ -473,9 +492,9 @@ function Movie() {
                                             Description
                                             <IsRequired />
                                         </label>
-                                        <input
-                                            type="text"
+                                        <textarea
                                             id="description"
+                                            rows={4}
                                             {...register("description")}
                                             placeholder="Description . . ."
                                             className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
@@ -487,8 +506,7 @@ function Movie() {
                                             Trailer link
                                             <IsRequired />
                                         </label>
-                                        <input
-                                            type="text"
+                                        <textarea
                                             id="trailerLink"
                                             {...register("trailerLink")}
                                             placeholder="Trailer link . . ."
@@ -499,7 +517,7 @@ function Movie() {
                                     <div className="flex gap-4">
                                         <div className="flex gap-2 flex-col flex-1">
                                             <label htmlFor="nation" className="flex gap-1 mb-1 items-center">
-                                                Nation
+                                                Nationality
                                                 <IsRequired />
                                             </label>
                                             <input
@@ -810,40 +828,69 @@ function Movie() {
                                         </Tippy>
                                     </div>
                                     <div className="outline outline-1 outline-border my-2"></div>
-                                    <div className="text-blue text-[15px]">Movie Posters</div>
-                                    <div className="flex gap-6 items-center">
+                                    <div className="text-blue text-[15px] mb-2">Movie Posters</div>
+                                    <div className="text-blue text-[15px]">New Posters</div>
+                                    <div className="flex gap-6 items-center flex-col">
                                         {moviePosters.map((poster) => (
-                                            <div key={poster.id} className="relative">
-                                                <img src={poster.link} alt="poster" className="rounded-xl" />
-                                                {poster.isThumb && (
-                                                    <span className="absolute top-2 left-2 shadow-lg rounded-lg p-2 bg-background_80 flex justify-center items-center">
+                                            <div key={poster.id} className="w-full flex gap-4">
+                                                <div className="relative w-full">
+                                                    <img src={poster.link} alt="poster" className="rounded-xl w-full" />
+                                                    {poster.isThumb && (
+                                                        <span className="absolute top-2 left-2 shadow-lg rounded-lg p-2 bg-background_80 flex justify-center items-center">
+                                                            Thumbnail
+                                                        </span>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            setMoviePosters(
+                                                                moviePosters.filter((item) => item.id !== poster.id)
+                                                            );
+                                                            setDeleteMoviePosterIds([
+                                                                ...deleteMoviePosterIds,
+                                                                poster.id
+                                                            ]);
+                                                        }}
+                                                        type="button"
+                                                        className="absolute top-2 right-2 bg-background_80 p-2 rounded-full shadow-lg hover:bg-primary"
+                                                    >
+                                                        <i>
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                viewBox="0 0 24 24"
+                                                                width={16}
+                                                                height={16}
+                                                                id="close"
+                                                            >
+                                                                <path
+                                                                    className="fill-white"
+                                                                    d="M13.41,12l6.3-6.29a1,1,0,1,0-1.42-1.42L12,10.59,5.71,4.29A1,1,0,0,0,4.29,5.71L10.59,12l-6.3,6.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l6.29,6.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z"
+                                                                ></path>
+                                                            </svg>
+                                                        </i>
+                                                    </button>
+                                                </div>
+                                                <div className="flex gap-2 flex-1 items-center">
+                                                    <input
+                                                        id="poster-thumb"
+                                                        name="poster-thumb"
+                                                        type="radio"
+                                                        className="w-[20px] h-[20px]"
+                                                        checked={poster.isThumb}
+                                                        onChange={() =>
+                                                            setMoviePosters(
+                                                                moviePosters.map((item) => {
+                                                                    if (item.id === poster.id) {
+                                                                        return { ...item, isThumb: true };
+                                                                    }
+                                                                    return { ...item, isThumb: false };
+                                                                })
+                                                            )
+                                                        }
+                                                    />
+                                                    <label htmlFor="poster-thumb" className="flex gap-1 items-center">
                                                         Thumbnail
-                                                    </span>
-                                                )}
-                                                <button
-                                                    onClick={() => {
-                                                        setMoviePosters(
-                                                            moviePosters.filter((item) => item.id !== poster.id)
-                                                        );
-                                                    }}
-                                                    type="button"
-                                                    className="absolute top-2 right-2 bg-background_80 p-2 rounded-full shadow-lg hover:bg-primary"
-                                                >
-                                                    <i>
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            viewBox="0 0 24 24"
-                                                            width={16}
-                                                            height={16}
-                                                            id="close"
-                                                        >
-                                                            <path
-                                                                className="fill-white"
-                                                                d="M13.41,12l6.3-6.29a1,1,0,1,0-1.42-1.42L12,10.59,5.71,4.29A1,1,0,0,0,4.29,5.71L10.59,12l-6.3,6.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l6.29,6.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z"
-                                                            ></path>
-                                                        </svg>
-                                                    </i>
-                                                </button>
+                                                    </label>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -872,11 +919,12 @@ function Movie() {
                                                 <div className="flex gap-2 flex-1 items-center">
                                                     <input
                                                         type="checkbox"
+                                                        id={`thumb-${index}`}
                                                         className="w-[20px] h-[20px]"
                                                         {...register(`moviePosters.${index}.isThumb` as const)}
                                                     />
                                                     <label
-                                                        htmlFor={`poster-${index}`}
+                                                        htmlFor={`thumb-${index}`}
                                                         className="flex gap-1 items-center"
                                                     >
                                                         Thumbnail

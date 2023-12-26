@@ -15,7 +15,7 @@
 }
 
 .Toastify__toast {
-    @apply !p-4 border border-primary !rounded-lg !shadow-sm !font-montserrat;
+    @apply !p-4 border border-primary !rounded-lg !shadow-sm !font-montserrat !text-center;
 }
 
 .Toastify__toast-theme--dark {

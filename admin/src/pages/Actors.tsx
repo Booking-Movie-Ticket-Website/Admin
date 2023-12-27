@@ -117,7 +117,7 @@ function Actors() {
                             setDeletingMode(false);
                             show();
                         }}
-                        className="rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 w-[112px]"
+                        className="bg-block rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 w-[112px]"
                     >
                         <i className="mr-[3px]">
                             <svg
@@ -147,7 +147,7 @@ function Actors() {
                     </button>
                     <button
                         onClick={() => setDeletingMode(!deletingMode)}
-                        className={`rounded-xl border-blue border hover:border-primary ${
+                        className={`bg-block rounded-xl border-blue border hover:border-primary ${
                             deletingMode ? "border-mdRed bg-mdRed" : ""
                         } hover:bg-primary flex items-center justify-center p-3 w-[112px]`}
                     >

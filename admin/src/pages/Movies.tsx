@@ -210,7 +210,7 @@ function Movies() {
                                 {...attrs}
                                 tabIndex={-1}
                                 className={`flex text-white p-2 rounded-bl-xl rounded-br-xl flex-col bg-background border-border border justify-center w-[232px] ${
-                                    visible ? "border-primary border-t-0" : ""
+                                    visible ? "border-primary border-t-0 bg-block" : ""
                                 }`}
                             >
                                 <button
@@ -278,7 +278,7 @@ function Movies() {
                     >
                         <button
                             onClick={() => setVisible(!visible)}
-                            className={`hover:border-primary py-3 px-5 border-blue border ${
+                            className={`hover:border-primary bg-block py-3 px-5 border-blue border ${
                                 visible ? "rounded-tl-xl rounded-tr-xl border-primary" : "rounded-xl"
                             }   flex justify-between items-center w-[232px]`}
                         >
@@ -306,7 +306,7 @@ function Movies() {
                             setDeletingMode(false);
                             show();
                         }}
-                        className="rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 w-[112px]"
+                        className="rounded-xl bg-block border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 w-[112px]"
                     >
                         <i className="mr-[3px]">
                             <svg
@@ -338,7 +338,7 @@ function Movies() {
                         onClick={() => setDeletingMode(!deletingMode)}
                         className={`rounded-xl border-blue border hover:border-primary ${
                             deletingMode ? "border-mdRed bg-mdRed" : ""
-                        } hover:bg-primary flex items-center justify-center p-3 w-[112px]`}
+                        } hover:bg-primary bg-block flex items-center justify-center p-3 w-[112px]`}
                     >
                         <i className="mr-1">
                             <svg

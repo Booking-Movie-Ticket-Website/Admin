@@ -13,6 +13,7 @@ import { startLoading, stopLoading } from "~/actions/loading";
 import { sendMessage } from "~/actions/message";
 import convertReleaseDate from "~/utils/convertReleaseDate";
 import { convertToBase64 } from "~/utils/convertToBase64";
+import Rating from "react-rating";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),
@@ -39,6 +40,9 @@ function Movie() {
     const { Portal, show, hide } = usePortal({ defaultShow: false });
     const [isActive, setActive] = useState(false);
     const [deleteMoviePosterIds, setDeleteMoviePosterIds] = useState<string[]>([]);
+    const [rating, setRating] = useState<number>(5);
+    const [reviewContent, setReviewContent] = useState<string>("");
+    const [deletingReview, setDeletingReview] = useState<boolean[]>([]);
     const {
         control,
         register,
@@ -163,6 +167,8 @@ function Movie() {
                     setValue("releaseDate", response.data.releaseDate || new Date());
                     setValue("nation", response.data.nation || "");
                     setValue("director", response.data.director || "");
+
+                    setDeletingReview(Array(response.data.reviews.length - 1).fill(false));
                 })
                 .catch((error) => console.error(error));
         })();
@@ -239,7 +245,7 @@ function Movie() {
                     .then(() => {
                         dispatch(stopLoading());
                         dispatch(sendMessage("Updated sucessfully!"));
-                        // setTimeout(() => window.location.reload(), 2000);
+                        setTimeout(() => window.location.reload(), 2000);
                     })
                     .catch((error) => {
                         dispatch(stopLoading());
@@ -249,6 +255,35 @@ function Movie() {
             })
             .catch((error) => {
                 console.error("Failed to convert base64:", error);
+            });
+    };
+
+    const postReview = async () => {
+        dispatch(startLoading());
+        await axios
+            .post(
+                "/reviews/",
+                {
+                    movieId: id,
+                    star: rating,
+                    description: reviewContent
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
+                }
+            )
+            .then(() => {
+                dispatch(stopLoading());
+                dispatch(sendMessage("Added sucessfully!"));
+                setTimeout(() => window.location.reload(), 2000);
+            })
+            .catch((error) => {
+                dispatch(stopLoading());
+                dispatch(sendMessage("Added failed!"));
+                console.error(error);
             });
     };
 
@@ -293,7 +328,7 @@ function Movie() {
         })();
     }, [id]);
 
-    console.log(data);
+    console.log(deletingReview);
 
     return (
         data && (
@@ -304,7 +339,7 @@ function Movie() {
                             onClick={() => {
                                 show();
                             }}
-                            className={`rounded-xl border-blue border hover:border-primary 
+                            className={`rounded-xl bg-block border-blue border hover:border-primary 
                                hover:bg-primary flex items-center justify-center p-3 w-[112px]`}
                         >
                             <i className="mr-1">
@@ -336,14 +371,14 @@ function Movie() {
                         <div className="w-1/2 flex flex-col gap-2">
                             <div className="text-primary flex items-center text-xl font-semibold">
                                 {data.name}
-                                <span className="ml-3 shadow-lg rounded-lg pl-2 bg-background border text-sm text-white border-blue flex justify-center items-center">
+                                <span className="ml-3 shadow-lg rounded-lg pl-2 bg-background border text-[13px] text-white border-blue flex justify-center items-center">
                                     {data.avrStars}/5
                                     <i>
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             viewBox="0 0 25 25"
-                                            width={28}
-                                            height={28}
+                                            width={24}
+                                            height={24}
                                             id="star"
                                         >
                                             <linearGradient
@@ -401,12 +436,14 @@ function Movie() {
                                 <div className="">
                                     <span className="text-blue font-medium">Total reviews:</span> {data.totalReviews}
                                 </div>
+                            </div>{" "}
+                            <div className="flex">
+                                <div className="">
+                                    <span className="text-blue font-medium">Description: </span>
+                                    {data.description}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="flex flex-col gap-4">
-                        <div className="text-blue font-medium text-lg">Story Line</div>
-                        <div className="">{data.description}</div>
                     </div>
                     <div className="flex flex-col gap-4">
                         <div className="text-blue font-medium text-lg">Posters</div>
@@ -415,7 +452,7 @@ function Movie() {
                                 <img
                                     src={data.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
                                     alt="poster"
-                                    className="rounded-xl"
+                                    className="rounded-xl h-[250px]"
                                 />
                                 <span className="absolute top-2 right-2 shadow-lg rounded-lg p-2 bg-background_80 flex justify-center items-center">
                                     Thumbnail
@@ -423,8 +460,8 @@ function Movie() {
                             </div>
                             {data.moviePosters
                                 .filter((poster) => poster.isThumb === false)
-                                .map((poster) => (
-                                    <img src={poster.link} className="rounded-xl" />
+                                .map((poster, index) => (
+                                    <img key={index} src={poster.link} className="rounded-xl h-[250px]" />
                                 ))}
                         </div>
                     </div>
@@ -435,7 +472,7 @@ function Movie() {
                                 <a
                                     href={`/actors/${actor.id}`}
                                     key={actor.id}
-                                    className={`cursor-pointer shadow-xl py-2 px-4 border border-blue hover:border-primary hover:bg-background text-left rounded-xl flex justify-between items-center p-2 `}
+                                    className={`cursor-pointer bg-background shadow-xl py-2 px-4 border border-blue hover:border-primary hover:bg-primary text-left rounded-xl flex justify-between items-center p-2 `}
                                 >
                                     <div className="flex items-center">
                                         <img
@@ -456,38 +493,61 @@ function Movie() {
                         <div className="flex flex-col gap-6">
                             {reviews &&
                                 (reviews.length > 0 ? (
-                                    reviews?.map((review) => (
-                                        <div
-                                            key={review.id}
-                                            className="bg-background p-4 rounded-xl border border-blue"
-                                        >
-                                            <div className="flex flex-col gap-2 mb-3">
-                                                <div className="text-blue font-medium text-[15px]">
-                                                    User-{review.id}
-                                                </div>
-                                                <div className="flex gap-1">
-                                                    {Array(review.star)
-                                                        .fill(null)
-                                                        .map((_, index) => (
-                                                            <i key={index}>
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    width="16"
-                                                                    height="16"
-                                                                    id="star"
-                                                                >
+                                    reviews?.map((review, index) => (
+                                        <div key={review.id}>
+                                            <div className="bg-background p-4 rounded-xl border border-blue relative">
+                                                <div className="absolute top-2 right-2 flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => {}}
+                                                        className="rounded-lg p-1 bg-block border-blue border hover:border-primary hover:bg-primary flex items-center justify-center"
+                                                    >
+                                                        <i className="">
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                viewBox="0 0 24 24"
+                                                                width={24}
+                                                                height={24}
+                                                                id="edit"
+                                                            >
+                                                                <g data-name="Layer 2">
                                                                     <path
-                                                                        fill="#f8b84e"
-                                                                        d="M-1220 1212.362c-11.656 8.326-86.446-44.452-100.77-44.568-14.324-.115-89.956 51.449-101.476 42.936-11.52-8.513 15.563-95.952 11.247-109.61-4.316-13.658-76.729-69.655-72.193-83.242 4.537-13.587 96.065-14.849 107.721-23.175 11.656-8.325 42.535-94.497 56.86-94.382 14.323.116 43.807 86.775 55.327 95.288 11.52 8.512 103.017 11.252 107.334 24.91 4.316 13.658-68.99 68.479-73.527 82.066-4.536 13.587 21.133 101.451 9.477 109.777z"
-                                                                        color="#000"
-                                                                        overflow="visible"
-                                                                        transform="matrix(.04574 0 0 .04561 68.85 -40.34)"
+                                                                        className="fill-white"
+                                                                        d="M19.4 7.34 16.66 4.6A2 2 0 0 0 14 4.53l-9 9a2 2 0 0 0-.57 1.21L4 18.91a1 1 0 0 0 .29.8A1 1 0 0 0 5 20h.09l4.17-.38a2 2 0 0 0 1.21-.57l9-9a1.92 1.92 0 0 0-.07-2.71zM9.08 17.62l-3 .28.27-3L12 9.32l2.7 2.7zM16 10.68 13.32 8l1.95-2L18 8.73z"
+                                                                        data-name="edit"
                                                                     ></path>
-                                                                </svg>
-                                                            </i>
-                                                        ))}
-                                                    {review.star < 5 &&
-                                                        Array(5 - review.star)
+                                                                </g>
+                                                            </svg>
+                                                        </i>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            deletingReview[index] = true;
+                                                            setDeletingReview(deletingReview);
+                                                        }}
+                                                        className={`rounded-lg p-1 border-blue border hover:border-mdRed  hover:bg-mdRed bg-block flex items-center justify-center`}
+                                                    >
+                                                        <i className="">
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                viewBox="0 0 32 32"
+                                                                width={24}
+                                                                height={24}
+                                                                id="delete"
+                                                            >
+                                                                <path
+                                                                    className="fill-white"
+                                                                    d="M24.2,12.193,23.8,24.3a3.988,3.988,0,0,1-4,3.857H12.2a3.988,3.988,0,0,1-4-3.853L7.8,12.193a1,1,0,0,1,2-.066l.4,12.11a2,2,0,0,0,2,1.923h7.6a2,2,0,0,0,2-1.927l.4-12.106a1,1,0,0,1,2,.066Zm1.323-4.029a1,1,0,0,1-1,1H7.478a1,1,0,0,1,0-2h3.1a1.276,1.276,0,0,0,1.273-1.148,2.991,2.991,0,0,1,2.984-2.694h2.33a2.991,2.991,0,0,1,2.984,2.694,1.276,1.276,0,0,0,1.273,1.148h3.1A1,1,0,0,1,25.522,8.164Zm-11.936-1h4.828a3.3,3.3,0,0,1-.255-.944,1,1,0,0,0-.994-.9h-2.33a1,1,0,0,0-.994.9A3.3,3.3,0,0,1,13.586,7.164Zm1.007,15.151V13.8a1,1,0,0,0-2,0v8.519a1,1,0,0,0,2,0Zm4.814,0V13.8a1,1,0,0,0-2,0v8.519a1,1,0,0,0,2,0Z"
+                                                                ></path>
+                                                            </svg>
+                                                        </i>
+                                                    </button>
+                                                </div>
+                                                <div className="flex flex-col gap-2 mb-3">
+                                                    <div className="text-blue font-medium text-[15px]">
+                                                        User-{review.id}
+                                                    </div>
+                                                    <div className="flex gap-1">
+                                                        {Array(review.star)
                                                             .fill(null)
                                                             .map((_, index) => (
                                                                 <i key={index}>
@@ -498,7 +558,7 @@ function Movie() {
                                                                         id="star"
                                                                     >
                                                                         <path
-                                                                            fill="#ccc"
+                                                                            fill="#f8b84e"
                                                                             d="M-1220 1212.362c-11.656 8.326-86.446-44.452-100.77-44.568-14.324-.115-89.956 51.449-101.476 42.936-11.52-8.513 15.563-95.952 11.247-109.61-4.316-13.658-76.729-69.655-72.193-83.242 4.537-13.587 96.065-14.849 107.721-23.175 11.656-8.325 42.535-94.497 56.86-94.382 14.323.116 43.807 86.775 55.327 95.288 11.52 8.512 103.017 11.252 107.334 24.91 4.316 13.658-68.99 68.479-73.527 82.066-4.536 13.587 21.133 101.451 9.477 109.777z"
                                                                             color="#000"
                                                                             overflow="visible"
@@ -507,14 +567,112 @@ function Movie() {
                                                                     </svg>
                                                                 </i>
                                                             ))}
+                                                        {review.star < 5 &&
+                                                            Array(5 - review.star)
+                                                                .fill(null)
+                                                                .map((_, index) => (
+                                                                    <i key={index}>
+                                                                        <svg
+                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                            width="16"
+                                                                            height="16"
+                                                                            id="star"
+                                                                        >
+                                                                            <path
+                                                                                fill="#ccc"
+                                                                                d="M-1220 1212.362c-11.656 8.326-86.446-44.452-100.77-44.568-14.324-.115-89.956 51.449-101.476 42.936-11.52-8.513 15.563-95.952 11.247-109.61-4.316-13.658-76.729-69.655-72.193-83.242 4.537-13.587 96.065-14.849 107.721-23.175 11.656-8.325 42.535-94.497 56.86-94.382 14.323.116 43.807 86.775 55.327 95.288 11.52 8.512 103.017 11.252 107.334 24.91 4.316 13.658-68.99 68.479-73.527 82.066-4.536 13.587 21.133 101.451 9.477 109.777z"
+                                                                                color="#000"
+                                                                                overflow="visible"
+                                                                                transform="matrix(.04574 0 0 .04561 68.85 -40.34)"
+                                                                            ></path>
+                                                                        </svg>
+                                                                    </i>
+                                                                ))}
+                                                    </div>
                                                 </div>
+                                                <div>{review.description}</div>
                                             </div>
-                                            {review.description}
+                                            {deletingReview[index] === true && (
+                                                <span className="text-blue">Do you want to delete this review?</span>
+                                            )}
                                         </div>
                                     ))
                                 ) : (
                                     <span>No reviews.</span>
                                 ))}
+                            <div className="flex flex-col gap-2">
+                                <div className="text-blue font-medium text-lg">New review</div>
+                                <div className="flex items-center gap-2 mb-2">
+                                    Rating:
+                                    <Rating
+                                        className="!flex gap-1"
+                                        initialRating={rating}
+                                        onChange={(value) => setRating(value)}
+                                        emptySymbol={
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" id="star">
+                                                <path
+                                                    fill="#ccc"
+                                                    d="M-1220 1212.362c-11.656 8.326-86.446-44.452-100.77-44.568-14.324-.115-89.956 51.449-101.476 42.936-11.52-8.513 15.563-95.952 11.247-109.61-4.316-13.658-76.729-69.655-72.193-83.242 4.537-13.587 96.065-14.849 107.721-23.175 11.656-8.325 42.535-94.497 56.86-94.382 14.323.116 43.807 86.775 55.327 95.288 11.52 8.512 103.017 11.252 107.334 24.91 4.316 13.658-68.99 68.479-73.527 82.066-4.536 13.587 21.133 101.451 9.477 109.777z"
+                                                    color="#000"
+                                                    overflow="visible"
+                                                    transform="matrix(.04574 0 0 .04561 68.85 -40.34)"
+                                                ></path>
+                                            </svg>
+                                        }
+                                        fullSymbol={
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" id="star">
+                                                <path
+                                                    fill="#f8b84e"
+                                                    d="M-1220 1212.362c-11.656 8.326-86.446-44.452-100.77-44.568-14.324-.115-89.956 51.449-101.476 42.936-11.52-8.513 15.563-95.952 11.247-109.61-4.316-13.658-76.729-69.655-72.193-83.242 4.537-13.587 96.065-14.849 107.721-23.175 11.656-8.325 42.535-94.497 56.86-94.382 14.323.116 43.807 86.775 55.327 95.288 11.52 8.512 103.017 11.252 107.334 24.91 4.316 13.658-68.99 68.479-73.527 82.066-4.536 13.587 21.133 101.451 9.477 109.777z"
+                                                    color="#000"
+                                                    overflow="visible"
+                                                    transform="matrix(.04574 0 0 .04561 68.85 -40.34)"
+                                                ></path>
+                                            </svg>
+                                        }
+                                    />
+                                </div>
+                                <textarea
+                                    onChange={(e) => setReviewContent(e.target.value)}
+                                    placeholder="New review . . ."
+                                    className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
+                                />
+                                <div className="flex mt-4 justify-end">
+                                    <button
+                                        onClick={() => {
+                                            postReview();
+                                        }}
+                                        className={`rounded-xl bg-background border-blue border hover:border-primary 
+                                   hover:bg-primary flex items-center justify-center p-3`}
+                                    >
+                                        <i className="mr-[3px]">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                id="add"
+                                                x="0"
+                                                y="0"
+                                                version="1.1"
+                                                viewBox="0 0 29 29"
+                                                xmlSpace="preserve"
+                                                width={20}
+                                                height={20}
+                                                className="translate-x-[-3px]"
+                                            >
+                                                <path
+                                                    fill="none"
+                                                    stroke="#fff"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeMiterlimit="10"
+                                                    strokeWidth="2"
+                                                    d="M14.5 22V7M7 14.5h15"
+                                                ></path>
+                                            </svg>
+                                        </i>
+                                        Add new review
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .active {
-    @apply bg-primary text-white pointer-events-none;
+    @apply bg-primary text-white;
 }
 
 .tippy-box {

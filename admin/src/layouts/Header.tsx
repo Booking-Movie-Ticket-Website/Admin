@@ -4,11 +4,13 @@ import Tippy from "@tippyjs/react/headless";
 import { useCallback } from "react";
 import { useAppDispatch } from "~/hook";
 import { logout } from "~/actions/auth";
+import { useLocation } from "react-router-dom";
 
 function Header() {
     const [scrollTop, setScrollTop] = useState(0);
     const [visible, setVisible] = useState(false);
     const dispatch = useAppDispatch();
+    const location = useLocation();
 
     const logOut = useCallback(() => {
         dispatch(logout());
@@ -33,7 +35,9 @@ function Header() {
             } h-[74px] backdrop-blur-3xl z-10 fixed top-0 left-[240px] right-0 flex px-8 py-4 items-center justify-between`}
         >
             <div className="flex items-center gap-6">
-                <div className="font-medium text-[22px] mr-2">Dashboard</div>
+                <div className="font-medium text-[22px] mr-2 capitalize">
+                    {location.pathname !== "/" ? location.pathname.split("/")[1] : "dashboard"}
+                </div>
                 <i className="group">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" id="calendar">
                         <g

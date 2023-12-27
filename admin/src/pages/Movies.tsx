@@ -42,6 +42,7 @@ function Movies() {
     const [title, setTitle] = useState("All");
     const [isActive, setActive] = useState(false);
     const [reloadFlag, setReloadFlag] = useState(false);
+    const [error, setError] = useState(false);
     const [categories, setCategories] = useState(
         Array<{
             id: string;
@@ -109,41 +110,48 @@ function Movies() {
 
         Promise.all(base64Promises)
             .then((updatedPosters) => {
-                axios
-                    .post(
-                        "/movies",
-                        {
-                            name,
-                            duration,
-                            description,
-                            trailerLink,
-                            releaseDate,
-                            nation,
-                            totalReviews: 0,
-                            avrStars: 0,
-                            isActive,
-                            director,
-                            movieCategoryIds,
-                            movieParticipantIds,
-                            moviePosters: updatedPosters
-                        },
-                        {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                const validArr = updatedPosters.filter((poster) => poster.isThumb === true);
+                if (validArr.length === 1) setError(false);
+                else setError(true);
+                if (!error) {
+                    axios
+                        .post(
+                            "/movies",
+                            {
+                                name,
+                                duration,
+                                description,
+                                trailerLink,
+                                releaseDate,
+                                nation,
+                                totalReviews: 0,
+                                avrStars: 0,
+                                isActive,
+                                director,
+                                movieCategoryIds,
+                                movieParticipantIds,
+                                moviePosters: updatedPosters
+                            },
+                            {
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${
+                                        JSON.parse(localStorage.getItem("user")!).data.accessToken
+                                    }`
+                                }
                             }
-                        }
-                    )
-                    .then(() => {
-                        dispatch(stopLoading());
-                        dispatch(sendMessage("Created sucessfully!"));
-                        setReloadFlag(true);
-                    })
-                    .catch((error) => {
-                        dispatch(stopLoading());
-                        dispatch(sendMessage("Created failed!"));
-                        console.error(error);
-                    });
+                        )
+                        .then(() => {
+                            dispatch(stopLoading());
+                            dispatch(sendMessage("Created sucessfully!"));
+                            setReloadFlag(true);
+                        })
+                        .catch((error) => {
+                            dispatch(stopLoading());
+                            dispatch(sendMessage("Created failed!"));
+                            console.error(error);
+                        });
+                }
             })
             .catch((error) => {
                 console.error("Failed to convert base64:", error);
@@ -787,6 +795,7 @@ function Movies() {
                                     </div>
                                 ))}
                                 <div className="flex items-center justify-center">
+                                    {error && <span className="text-deepRed">A movie must have only one poster.</span>}
                                     <button
                                         type="button"
                                         className="outline outline-1 outline-blue px-5 py-3 rounded-lg hover:outline-primary hover:bg-primary"

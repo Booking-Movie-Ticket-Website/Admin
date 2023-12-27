@@ -195,6 +195,12 @@ function Movie() {
             base64: await convert(poster.base64[0])
         }));
 
+        console.log(
+            moviePosters,
+            data?.moviePosters,
+            moviePosters.some((item, index) => item.isThumb !== data?.moviePosters[index].isThumb)
+        );
+
         Promise.all(base64Promises)
             .then((updatedPosters) => {
                 axios
@@ -213,6 +219,11 @@ function Movie() {
                             ...(Array.isArray(deleteMovieCategoryIds) &&
                                 deleteMovieCategoryIds?.length > 0 && { deleteMovieCategoryIds }),
                             ...(addMovieParticipantIds.length > 0 && { addMovieParticipantIds }),
+                            ...(moviePosters.some(
+                                (item, index) => item.isThumb !== data?.moviePosters[index].isThumb
+                            ) && {
+                                moviePosters
+                            }),
                             ...(Array.isArray(deleteMovieParticipantIds) &&
                                 deleteMovieParticipantIds?.length > 0 && { deleteMovieParticipantIds }),
                             ...(updatedPosters[0].base64 && { addMoviePosters: updatedPosters }),
@@ -228,7 +239,7 @@ function Movie() {
                     .then(() => {
                         dispatch(stopLoading());
                         dispatch(sendMessage("Updated sucessfully!"));
-                        setTimeout(() => window.location.reload(), 2000);
+                        // setTimeout(() => window.location.reload(), 2000);
                     })
                     .catch((error) => {
                         dispatch(stopLoading());
@@ -317,43 +328,44 @@ function Movie() {
                 <div className="bg-block p-6 rounded-3xl shadow-xl flex flex-col gap-6">
                     <div className="flex w-full gap-6">
                         <div className="w-1/2 relative">
-                            <img
-                                src={data.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
-                                alt="poster"
-                                className="rounded-xl"
-                            />
-                            <span className="absolute top-0 right-0 z-10 shadow-lg rounded-lg pl-2 py-1 m-2 bg-background_80 flex justify-center items-center">
-                                {data.avrStars}/5
-                                <i>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 25 25"
-                                        width={28}
-                                        height={28}
-                                        id="star"
-                                    >
-                                        <linearGradient
-                                            id="a"
-                                            x1="3.063"
-                                            x2="16.937"
-                                            y1="11"
-                                            y2="11"
-                                            gradientUnits="userSpaceOnUse"
-                                        >
-                                            <stop offset="0" stopColor="#ffc80b"></stop>
-                                            <stop offset="1" stopColor="#e89318"></stop>
-                                        </linearGradient>
-                                        <path
-                                            fill="url(#a)"
-                                            transform="translate(0 1.5)"
-                                            d="m10.4 4.7 1.8 3.6c.1.1.2.2.4.3l3.9.6c.4.1.6.6.3.9L14 12.9c-.1.1-.2.3-.1.4l.7 3.9c.1.4-.4.7-.7.5l-3.5-1.8c-.1-.1-.3-.1-.5 0l-3.5 1.8c-.4.2-.8-.1-.7-.5l.7-3.9c0-.2 0-.3-.1-.4l-3.1-3c-.3-.3-.1-.8.3-.8l3.9-.6c.2 0 .3-.1.4-.3l1.8-3.6c.1-.3.7-.3.8.1z"
-                                        ></path>
-                                    </svg>
-                                </i>
-                            </span>
+                            <div
+                                className="relative rounded-xl overflow-hidden pb-[56.25%]"
+                                dangerouslySetInnerHTML={{ __html: data.trailerLink }}
+                            ></div>
                         </div>
                         <div className="w-1/2 flex flex-col gap-2">
-                            <div className="text-primary text-xl font-semibold">{data.name}</div>
+                            <div className="text-primary flex items-center text-xl font-semibold">
+                                {data.name}
+                                <span className="ml-3 shadow-lg rounded-lg pl-2 bg-background border text-sm text-white border-blue flex justify-center items-center">
+                                    {data.avrStars}/5
+                                    <i>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 25 25"
+                                            width={28}
+                                            height={28}
+                                            id="star"
+                                        >
+                                            <linearGradient
+                                                id="a"
+                                                x1="3.063"
+                                                x2="16.937"
+                                                y1="11"
+                                                y2="11"
+                                                gradientUnits="userSpaceOnUse"
+                                            >
+                                                <stop offset="0" stopColor="#ffc80b"></stop>
+                                                <stop offset="1" stopColor="#e89318"></stop>
+                                            </linearGradient>
+                                            <path
+                                                fill="url(#a)"
+                                                transform="translate(0 1.5)"
+                                                d="m10.4 4.7 1.8 3.6c.1.1.2.2.4.3l3.9.6c.4.1.6.6.3.9L14 12.9c-.1.1-.2.3-.1.4l.7 3.9c.1.4-.4.7-.7.5l-3.5-1.8c-.1-.1-.3-.1-.5 0l-3.5 1.8c-.4.2-.8-.1-.7-.5l.7-3.9c0-.2 0-.3-.1-.4l-3.1-3c-.3-.3-.1-.8.3-.8l3.9-.6c.2 0 .3-.1.4-.3l1.8-3.6c.1-.3.7-.3.8.1z"
+                                            ></path>
+                                        </svg>
+                                    </i>
+                                </span>
+                            </div>
                             <div className="flex gap-2 mb-4">
                                 {data.movieCategories.map((movieCategory) => (
                                     <span
@@ -390,9 +402,30 @@ function Movie() {
                                     <span className="text-blue font-medium">Total reviews:</span> {data.totalReviews}
                                 </div>
                             </div>
-                            <div className="">
-                                <span className="text-blue font-medium">Description:</span> {data.description}
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                        <div className="text-blue font-medium text-lg">Story Line</div>
+                        <div className="">{data.description}</div>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                        <div className="text-blue font-medium text-lg">Posters</div>
+                        <div className="flex gap-6 items-center">
+                            <div className="relative">
+                                <img
+                                    src={data.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
+                                    alt="poster"
+                                    className="rounded-xl"
+                                />
+                                <span className="absolute top-2 right-2 shadow-lg rounded-lg p-2 bg-background_80 flex justify-center items-center">
+                                    Thumbnail
+                                </span>
                             </div>
+                            {data.moviePosters
+                                .filter((poster) => poster.isThumb === false)
+                                .map((poster) => (
+                                    <img src={poster.link} className="rounded-xl" />
+                                ))}
                         </div>
                     </div>
                     <div className="flex flex-col gap-4">
@@ -420,12 +453,68 @@ function Movie() {
                     </div>
                     <div className="flex flex-col gap-4">
                         <div className="text-blue font-medium text-lg">Reviews</div>
-                        <div className="grid grid-cols-4 gap-6">
-                            {reviews?.map((review) => (
-                                <div key={review.id} className="">
-                                    {review.description}
-                                </div>
-                            ))}
+                        <div className="flex flex-col gap-6">
+                            {reviews &&
+                                (reviews.length > 0 ? (
+                                    reviews?.map((review) => (
+                                        <div
+                                            key={review.id}
+                                            className="bg-background p-4 rounded-xl border border-blue"
+                                        >
+                                            <div className="flex flex-col gap-2 mb-3">
+                                                <div className="text-blue font-medium text-[15px]">
+                                                    User-{review.id}
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    {Array(review.star)
+                                                        .fill(null)
+                                                        .map((_, index) => (
+                                                            <i key={index}>
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    width="16"
+                                                                    height="16"
+                                                                    id="star"
+                                                                >
+                                                                    <path
+                                                                        fill="#f8b84e"
+                                                                        d="M-1220 1212.362c-11.656 8.326-86.446-44.452-100.77-44.568-14.324-.115-89.956 51.449-101.476 42.936-11.52-8.513 15.563-95.952 11.247-109.61-4.316-13.658-76.729-69.655-72.193-83.242 4.537-13.587 96.065-14.849 107.721-23.175 11.656-8.325 42.535-94.497 56.86-94.382 14.323.116 43.807 86.775 55.327 95.288 11.52 8.512 103.017 11.252 107.334 24.91 4.316 13.658-68.99 68.479-73.527 82.066-4.536 13.587 21.133 101.451 9.477 109.777z"
+                                                                        color="#000"
+                                                                        overflow="visible"
+                                                                        transform="matrix(.04574 0 0 .04561 68.85 -40.34)"
+                                                                    ></path>
+                                                                </svg>
+                                                            </i>
+                                                        ))}
+                                                    {review.star < 5 &&
+                                                        Array(5 - review.star)
+                                                            .fill(null)
+                                                            .map((_, index) => (
+                                                                <i key={index}>
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        width="16"
+                                                                        height="16"
+                                                                        id="star"
+                                                                    >
+                                                                        <path
+                                                                            fill="#ccc"
+                                                                            d="M-1220 1212.362c-11.656 8.326-86.446-44.452-100.77-44.568-14.324-.115-89.956 51.449-101.476 42.936-11.52-8.513 15.563-95.952 11.247-109.61-4.316-13.658-76.729-69.655-72.193-83.242 4.537-13.587 96.065-14.849 107.721-23.175 11.656-8.325 42.535-94.497 56.86-94.382 14.323.116 43.807 86.775 55.327 95.288 11.52 8.512 103.017 11.252 107.334 24.91 4.316 13.658-68.99 68.479-73.527 82.066-4.536 13.587 21.133 101.451 9.477 109.777z"
+                                                                            color="#000"
+                                                                            overflow="visible"
+                                                                            transform="matrix(.04574 0 0 .04561 68.85 -40.34)"
+                                                                        ></path>
+                                                                    </svg>
+                                                                </i>
+                                                            ))}
+                                                </div>
+                                            </div>
+                                            {review.description}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <span>No reviews.</span>
+                                ))}
                         </div>
                     </div>
                 </div>
@@ -829,7 +918,6 @@ function Movie() {
                                     </div>
                                     <div className="outline outline-1 outline-border my-2"></div>
                                     <div className="text-blue text-[15px] mb-2">Movie Posters</div>
-                                    <div className="text-blue text-[15px]">New Posters</div>
                                     <div className="flex gap-6 items-center flex-col">
                                         {moviePosters.map((poster) => (
                                             <div key={poster.id} className="w-full flex gap-4">
@@ -894,6 +982,7 @@ function Movie() {
                                             </div>
                                         ))}
                                     </div>
+                                    <div className="text-blue text-[15px]">New Posters</div>
                                     {fields.map((field, index) => (
                                         <div
                                             key={field.id}
@@ -918,7 +1007,7 @@ function Movie() {
                                             <div className="flex gap-2 mt-8">
                                                 <div className="flex gap-2 flex-1 items-center">
                                                     <input
-                                                        type="checkbox"
+                                                        type="radio"
                                                         id={`thumb-${index}`}
                                                         className="w-[20px] h-[20px]"
                                                         {...register(`moviePosters.${index}.isThumb` as const)}

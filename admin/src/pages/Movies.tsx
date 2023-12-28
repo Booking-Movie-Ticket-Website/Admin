@@ -750,7 +750,6 @@ function Movies() {
                                         </div>
                                     </Tippy>
                                 </div>
-
                                 <div className="outline outline-1 outline-border my-2"></div>
                                 <div className="text-blue text-[15px]">Movie Posters</div>
                                 {fields.map((field, index) => (

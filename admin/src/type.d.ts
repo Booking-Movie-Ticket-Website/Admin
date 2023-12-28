@@ -5,11 +5,7 @@ interface IMovie {
     trailerLink: string;
     releaseDate: Date;
     nation: string;
-    // totalReviews: number;
-    // avrStars: number;
     director: string;
-    // movieCategoryIds: string;
-    // movieParticipantIds: string;
     moviePosters: Array<IMoviePosters>;
 }
 
@@ -25,7 +21,6 @@ interface IActors {
 }
 
 interface IActor {
-    profession: string;
     fullName: string;
     dateOfBirth: Date;
     biography: string;
@@ -67,4 +62,11 @@ interface IMovieData {
             nationality: string;
         };
     }>;
+}
+
+interface IActorData {
+    fullName: string;
+    dateOfBirth: Date;
+    biography: string;
+    nationality: string;
 }

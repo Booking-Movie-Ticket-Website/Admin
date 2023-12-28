@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import { useAppSelector } from "./hook";
 import { toast } from "react-toastify";
 import Actors from "./pages/Actors";
+import Actor from "./pages/Actor";
 
 function App() {
     const root = document.querySelector("#root");
@@ -39,6 +40,7 @@ function App() {
                     <Route path="/movies" element={<Movies />} />
                     <Route path="/movies/:id" element={<Movie />} />
                     <Route path="/actors" element={<Actors />} />
+                    <Route path="/actors/:id" element={<Actor />} />
                 </Route>
             </Route>
         </Routes>

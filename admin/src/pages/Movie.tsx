@@ -43,6 +43,8 @@ function Movie() {
     const [rating, setRating] = useState<number>(5);
     const [reviewContent, setReviewContent] = useState<string>("");
     const [deletingReview, setDeletingReview] = useState<boolean[]>([]);
+    const [updatingReview, setUpdatingReview] = useState<boolean[]>([]);
+    const [updatingReviewContent, setUpdatingReviewContent] = useState<string>("");
     const {
         control,
         register,
@@ -167,8 +169,8 @@ function Movie() {
                     setValue("releaseDate", response.data.releaseDate || new Date());
                     setValue("nation", response.data.nation || "");
                     setValue("director", response.data.director || "");
-
                     setDeletingReview(Array(response.data.reviews.length - 1).fill(false));
+                    setUpdatingReview(Array(response.data.reviews.length - 1).fill(false));
                 })
                 .catch((error) => console.error(error));
         })();
@@ -200,12 +202,7 @@ function Movie() {
             ...poster,
             base64: await convert(poster.base64[0])
         }));
-
-        console.log(
-            moviePosters,
-            data?.moviePosters,
-            moviePosters.some((item, index) => item.isThumb !== data?.moviePosters[index].isThumb)
-        );
+        const thumbnailMoviePosterId = moviePosters.filter((item) => item.isThumb === true)[0].id;
 
         Promise.all(base64Promises)
             .then((updatedPosters) => {
@@ -228,7 +225,7 @@ function Movie() {
                             ...(moviePosters.some(
                                 (item, index) => item.isThumb !== data?.moviePosters[index].isThumb
                             ) && {
-                                moviePosters
+                                thumbnailMoviePosterId
                             }),
                             ...(Array.isArray(deleteMovieParticipantIds) &&
                                 deleteMovieParticipantIds?.length > 0 && { deleteMovieParticipantIds }),
@@ -287,6 +284,54 @@ function Movie() {
             });
     };
 
+    const deleteReview = async (reviewId: string) => {
+        dispatch(startLoading());
+        await axios
+            .delete(`/reviews/${reviewId}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                }
+            })
+            .then(() => {
+                dispatch(stopLoading());
+                dispatch(sendMessage("Deleted sucessfully!"));
+                setTimeout(() => window.location.reload(), 2000);
+            })
+            .catch((error) => {
+                dispatch(stopLoading());
+                dispatch(sendMessage("Deleted failed!"));
+                console.error(error);
+            });
+    };
+
+    const updateReview = async (reviewId: string) => {
+        dispatch(startLoading());
+        await axios
+            .patch(
+                `/reviews/${reviewId}`,
+                {
+                    description: updatingReviewContent
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
+                }
+            )
+            .then(() => {
+                dispatch(stopLoading());
+                dispatch(sendMessage("Updated sucessfully!"));
+                setTimeout(() => window.location.reload(), 2000);
+            })
+            .catch((error) => {
+                dispatch(stopLoading());
+                dispatch(sendMessage("Updated failed!"));
+                console.error(error);
+            });
+    };
+
     const convert = async (file: File) => {
         if (file) {
             try {
@@ -327,8 +372,6 @@ function Movie() {
                 .catch((error) => console.error(error));
         })();
     }, [id]);
-
-    console.log(deletingReview);
 
     return (
         data && (
@@ -372,7 +415,7 @@ function Movie() {
                             <div className="text-primary flex items-center text-xl font-semibold">
                                 {data.name}
                                 <span className="ml-3 shadow-lg rounded-lg pl-2 bg-background border text-[13px] text-white border-blue flex justify-center items-center">
-                                    {data.avrStars}/5
+                                    {Math.round(data.avrStars * 10) / 10}/5
                                     <i>
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -494,81 +537,142 @@ function Movie() {
                             {reviews &&
                                 (reviews.length > 0 ? (
                                     reviews?.map((review, index) => (
-                                        <div key={review.id}>
-                                            <div className="bg-background p-4 rounded-xl border border-blue relative">
-                                                <div className="absolute top-2 right-2 flex items-center gap-2">
+                                        <Tippy
+                                            key={review.id}
+                                            visible={deletingReview[index] === true}
+                                            onClickOutside={() => {
+                                                const updatedDeletingReview = Array(deletingReview.length).fill(false);
+                                                setDeletingReview(updatedDeletingReview);
+                                            }}
+                                            offset={[0, -120]}
+                                            interactive
+                                            render={() => (
+                                                <div className="border border-blue rounded-xl bg-background relative">
                                                     <button
-                                                        onClick={() => {}}
-                                                        className="rounded-lg p-1 bg-block border-blue border hover:border-primary hover:bg-primary flex items-center justify-center"
+                                                        onClick={() => {
+                                                            const updatedDeletingReview = Array(
+                                                                deletingReview.length
+                                                            ).fill(false);
+                                                            setDeletingReview(updatedDeletingReview);
+                                                        }}
+                                                        className="absolute right-1 top-1 border border-blue rounded-full p-1 hover:border-primary hover:bg-primary"
                                                     >
-                                                        <i className="">
+                                                        <i>
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
                                                                 viewBox="0 0 24 24"
-                                                                width={24}
-                                                                height={24}
-                                                                id="edit"
-                                                            >
-                                                                <g data-name="Layer 2">
-                                                                    <path
-                                                                        className="fill-white"
-                                                                        d="M19.4 7.34 16.66 4.6A2 2 0 0 0 14 4.53l-9 9a2 2 0 0 0-.57 1.21L4 18.91a1 1 0 0 0 .29.8A1 1 0 0 0 5 20h.09l4.17-.38a2 2 0 0 0 1.21-.57l9-9a1.92 1.92 0 0 0-.07-2.71zM9.08 17.62l-3 .28.27-3L12 9.32l2.7 2.7zM16 10.68 13.32 8l1.95-2L18 8.73z"
-                                                                        data-name="edit"
-                                                                    ></path>
-                                                                </g>
-                                                            </svg>
-                                                        </i>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            deletingReview[index] = true;
-                                                            setDeletingReview(deletingReview);
-                                                        }}
-                                                        className={`rounded-lg p-1 border-blue border hover:border-mdRed  hover:bg-mdRed bg-block flex items-center justify-center`}
-                                                    >
-                                                        <i className="">
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                viewBox="0 0 32 32"
-                                                                width={24}
-                                                                height={24}
-                                                                id="delete"
+                                                                width={14}
+                                                                height={14}
+                                                                id="close"
                                                             >
                                                                 <path
                                                                     className="fill-white"
-                                                                    d="M24.2,12.193,23.8,24.3a3.988,3.988,0,0,1-4,3.857H12.2a3.988,3.988,0,0,1-4-3.853L7.8,12.193a1,1,0,0,1,2-.066l.4,12.11a2,2,0,0,0,2,1.923h7.6a2,2,0,0,0,2-1.927l.4-12.106a1,1,0,0,1,2,.066Zm1.323-4.029a1,1,0,0,1-1,1H7.478a1,1,0,0,1,0-2h3.1a1.276,1.276,0,0,0,1.273-1.148,2.991,2.991,0,0,1,2.984-2.694h2.33a2.991,2.991,0,0,1,2.984,2.694,1.276,1.276,0,0,0,1.273,1.148h3.1A1,1,0,0,1,25.522,8.164Zm-11.936-1h4.828a3.3,3.3,0,0,1-.255-.944,1,1,0,0,0-.994-.9h-2.33a1,1,0,0,0-.994.9A3.3,3.3,0,0,1,13.586,7.164Zm1.007,15.151V13.8a1,1,0,0,0-2,0v8.519a1,1,0,0,0,2,0Zm4.814,0V13.8a1,1,0,0,0-2,0v8.519a1,1,0,0,0,2,0Z"
+                                                                    d="M13.41,12l6.3-6.29a1,1,0,1,0-1.42-1.42L12,10.59,5.71,4.29A1,1,0,0,0,4.29,5.71L10.59,12l-6.3,6.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l6.29,6.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z"
                                                                 ></path>
                                                             </svg>
                                                         </i>
                                                     </button>
-                                                </div>
-                                                <div className="flex flex-col gap-2 mb-3">
-                                                    <div className="text-blue font-medium text-[15px]">
-                                                        User-{review.id}
+                                                    <div className="p-6 mt-2 text-[15px]">
+                                                        <div className="flex flex-col gap-2 items-center">
+                                                            <span className="mr-2 mb-2">
+                                                                Do you want to delete this review?
+                                                            </span>
+                                                            <div className="flex gap-6">
+                                                                <button
+                                                                    onClick={() => deleteReview(review.id)}
+                                                                    className="px-5 py-2 border border-blue hover:border-mdRed hover:bg-mdRed rounded-lg"
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const updatedDeletingReview = Array(
+                                                                            deletingReview.length
+                                                                        ).fill(false);
+                                                                        setDeletingReview(updatedDeletingReview);
+                                                                    }}
+                                                                    className="px-5 py-2 border border-blue hover:border-primary hover:bg-primary rounded-lg"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex gap-1">
-                                                        {Array(review.star)
-                                                            .fill(null)
-                                                            .map((_, index) => (
-                                                                <i key={index}>
-                                                                    <svg
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                        width="16"
-                                                                        height="16"
-                                                                        id="star"
-                                                                    >
+                                                </div>
+                                            )}
+                                        >
+                                            <div>
+                                                <div
+                                                    className={`bg-background p-4 rounded-xl border border-blue relative ${
+                                                        deletingReview[index] === true ? "border-primary" : ""
+                                                    }`}
+                                                >
+                                                    <div className="absolute top-2 right-2 flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                const updatedUpdatingReview = Array(
+                                                                    updatingReview.length
+                                                                ).fill(false);
+                                                                updatedUpdatingReview[index] = true;
+                                                                setUpdatingReview(updatedUpdatingReview);
+                                                                setUpdatingReviewContent(review.description);
+                                                            }}
+                                                            className="rounded-lg p-1 bg-block border-blue border hover:border-primary hover:bg-primary flex items-center justify-center"
+                                                        >
+                                                            <i className="">
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    viewBox="0 0 24 24"
+                                                                    width={24}
+                                                                    height={24}
+                                                                    id="edit"
+                                                                >
+                                                                    <g data-name="Layer 2">
                                                                         <path
-                                                                            fill="#f8b84e"
-                                                                            d="M-1220 1212.362c-11.656 8.326-86.446-44.452-100.77-44.568-14.324-.115-89.956 51.449-101.476 42.936-11.52-8.513 15.563-95.952 11.247-109.61-4.316-13.658-76.729-69.655-72.193-83.242 4.537-13.587 96.065-14.849 107.721-23.175 11.656-8.325 42.535-94.497 56.86-94.382 14.323.116 43.807 86.775 55.327 95.288 11.52 8.512 103.017 11.252 107.334 24.91 4.316 13.658-68.99 68.479-73.527 82.066-4.536 13.587 21.133 101.451 9.477 109.777z"
-                                                                            color="#000"
-                                                                            overflow="visible"
-                                                                            transform="matrix(.04574 0 0 .04561 68.85 -40.34)"
+                                                                            className="fill-white"
+                                                                            d="M19.4 7.34 16.66 4.6A2 2 0 0 0 14 4.53l-9 9a2 2 0 0 0-.57 1.21L4 18.91a1 1 0 0 0 .29.8A1 1 0 0 0 5 20h.09l4.17-.38a2 2 0 0 0 1.21-.57l9-9a1.92 1.92 0 0 0-.07-2.71zM9.08 17.62l-3 .28.27-3L12 9.32l2.7 2.7zM16 10.68 13.32 8l1.95-2L18 8.73z"
+                                                                            data-name="edit"
                                                                         ></path>
-                                                                    </svg>
-                                                                </i>
-                                                            ))}
-                                                        {review.star < 5 &&
-                                                            Array(5 - review.star)
+                                                                    </g>
+                                                                </svg>
+                                                            </i>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                const updatedDeletingReview = Array(
+                                                                    deletingReview.length
+                                                                ).fill(false);
+                                                                updatedDeletingReview[index] = true;
+                                                                setDeletingReview(updatedDeletingReview);
+                                                            }}
+                                                            className={`rounded-lg p-1 border-blue border hover:border-mdRed  hover:bg-mdRed bg-block flex items-center justify-center ${
+                                                                deletingReview[index] === true
+                                                                    ? "border-mdRed bg-mdRed"
+                                                                    : ""
+                                                            }`}
+                                                        >
+                                                            <i className="">
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    viewBox="0 0 32 32"
+                                                                    width={24}
+                                                                    height={24}
+                                                                    id="delete"
+                                                                >
+                                                                    <path
+                                                                        className="fill-white"
+                                                                        d="M24.2,12.193,23.8,24.3a3.988,3.988,0,0,1-4,3.857H12.2a3.988,3.988,0,0,1-4-3.853L7.8,12.193a1,1,0,0,1,2-.066l.4,12.11a2,2,0,0,0,2,1.923h7.6a2,2,0,0,0,2-1.927l.4-12.106a1,1,0,0,1,2,.066Zm1.323-4.029a1,1,0,0,1-1,1H7.478a1,1,0,0,1,0-2h3.1a1.276,1.276,0,0,0,1.273-1.148,2.991,2.991,0,0,1,2.984-2.694h2.33a2.991,2.991,0,0,1,2.984,2.694,1.276,1.276,0,0,0,1.273,1.148h3.1A1,1,0,0,1,25.522,8.164Zm-11.936-1h4.828a3.3,3.3,0,0,1-.255-.944,1,1,0,0,0-.994-.9h-2.33a1,1,0,0,0-.994.9A3.3,3.3,0,0,1,13.586,7.164Zm1.007,15.151V13.8a1,1,0,0,0-2,0v8.519a1,1,0,0,0,2,0Zm4.814,0V13.8a1,1,0,0,0-2,0v8.519a1,1,0,0,0,2,0Z"
+                                                                    ></path>
+                                                                </svg>
+                                                            </i>
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex flex-col gap-2">
+                                                        <div className="text-blue font-medium text-[15px]">
+                                                            <div>User-{review.id}</div>
+                                                        </div>
+                                                        <div className="flex gap-1">
+                                                            {Array(review.star)
                                                                 .fill(null)
                                                                 .map((_, index) => (
                                                                     <i key={index}>
@@ -579,7 +683,7 @@ function Movie() {
                                                                             id="star"
                                                                         >
                                                                             <path
-                                                                                fill="#ccc"
+                                                                                fill="#f8b84e"
                                                                                 d="M-1220 1212.362c-11.656 8.326-86.446-44.452-100.77-44.568-14.324-.115-89.956 51.449-101.476 42.936-11.52-8.513 15.563-95.952 11.247-109.61-4.316-13.658-76.729-69.655-72.193-83.242 4.537-13.587 96.065-14.849 107.721-23.175 11.656-8.325 42.535-94.497 56.86-94.382 14.323.116 43.807 86.775 55.327 95.288 11.52 8.512 103.017 11.252 107.334 24.91 4.316 13.658-68.99 68.479-73.527 82.066-4.536 13.587 21.133 101.451 9.477 109.777z"
                                                                                 color="#000"
                                                                                 overflow="visible"
@@ -588,18 +692,74 @@ function Movie() {
                                                                         </svg>
                                                                     </i>
                                                                 ))}
+                                                            {review.star < 5 &&
+                                                                Array(5 - review.star)
+                                                                    .fill(null)
+                                                                    .map((_, index) => (
+                                                                        <i key={index}>
+                                                                            <svg
+                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                width="16"
+                                                                                height="16"
+                                                                                id="star"
+                                                                            >
+                                                                                <path
+                                                                                    fill="#ccc"
+                                                                                    d="M-1220 1212.362c-11.656 8.326-86.446-44.452-100.77-44.568-14.324-.115-89.956 51.449-101.476 42.936-11.52-8.513 15.563-95.952 11.247-109.61-4.316-13.658-76.729-69.655-72.193-83.242 4.537-13.587 96.065-14.849 107.721-23.175 11.656-8.325 42.535-94.497 56.86-94.382 14.323.116 43.807 86.775 55.327 95.288 11.52 8.512 103.017 11.252 107.334 24.91 4.316 13.658-68.99 68.479-73.527 82.066-4.536 13.587 21.133 101.451 9.477 109.777z"
+                                                                                    color="#000"
+                                                                                    overflow="visible"
+                                                                                    transform="matrix(.04574 0 0 .04561 68.85 -40.34)"
+                                                                                ></path>
+                                                                            </svg>
+                                                                        </i>
+                                                                    ))}
+                                                        </div>
                                                     </div>
+                                                    {updatingReview[index] === true ? (
+                                                        <textarea
+                                                            onChange={(e) => setUpdatingReviewContent(e.target.value)}
+                                                            value={updatingReviewContent}
+                                                            placeholder="New review . . ."
+                                                            className="bg-[rgba(141,124,221,0.1)] mt-6 w-full text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
+                                                        />
+                                                    ) : (
+                                                        review.description && (
+                                                            <div className="mt-3">{review.description}</div>
+                                                        )
+                                                    )}
                                                 </div>
-                                                <div>{review.description}</div>
+                                                {updatingReview[index] === true ? (
+                                                    <div className="flex justify-end mt-6">
+                                                        <div className="flex gap-6">
+                                                            <button
+                                                                onClick={() => updateReview(review.id)}
+                                                                className="px-5 py-2 border border-blue hover:border-primary hover:bg-primary rounded-lg"
+                                                            >
+                                                                Update
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const updatedUpdatingReview = Array(
+                                                                        updatingReview.length
+                                                                    ).fill(false);
+                                                                    setUpdatingReview(updatedUpdatingReview);
+                                                                }}
+                                                                className="px-5 py-2 border border-blue hover:border-primary hover:bg-primary rounded-lg"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    ""
+                                                )}
                                             </div>
-                                            {deletingReview[index] === true && (
-                                                <span className="text-blue">Do you want to delete this review?</span>
-                                            )}
-                                        </div>
+                                        </Tippy>
                                     ))
                                 ) : (
                                     <span>No reviews.</span>
                                 ))}
+
                             <div className="flex flex-col gap-2">
                                 <div className="text-blue font-medium text-lg">New review</div>
                                 <div className="flex items-center gap-2 mb-2">

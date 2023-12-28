@@ -16,7 +16,6 @@ import ActorItem from "~/components/ActorItem";
 
 const schema = yup.object().shape({
     fullName: yup.string().required("Full name is required."),
-    profession: yup.string().required("Profession is required."),
     dateOfBirth: yup.date().required("Birth date is required.").typeError("Birth date must be a date."),
     biography: yup.string().required("Biography is required."),
     nationality: yup.string().required("Nationality is required.")
@@ -57,7 +56,6 @@ function Actors() {
         hide();
         dispatch(startLoading());
         const fullName = data.fullName;
-        const profession = data.profession;
         const dateOfBirth = convertReleaseDate(data.dateOfBirth);
         const biography = data.biography;
         const nationality = data.nationality;
@@ -70,7 +68,6 @@ function Actors() {
                     {
                         fullName,
                         base64ProfilePicture,
-                        profession,
                         dateOfBirth,
                         biography,
                         nationality,
@@ -332,20 +329,6 @@ function Actors() {
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex gap-2 flex-col">
-                                        <label htmlFor="profession" className="flex gap-1 mb-1 items-center">
-                                            Profession
-                                            <IsRequired />
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="profession"
-                                            placeholder="Profession . . ."
-                                            {...register("profession")}
-                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                        />
-                                        {<span className="text-deepRed">{errors.profession?.message}</span>}
-                                    </div>
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="biography" className="flex gap-1 mb-1 items-center">
                                             Biography

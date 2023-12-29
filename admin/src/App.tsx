@@ -11,6 +11,8 @@ import { useAppSelector } from "./hook";
 import { toast } from "react-toastify";
 import Actors from "./pages/Actors";
 import Actor from "./pages/Actor";
+import News from "./pages/News";
+import NewsDetail from "./pages/NewsDetail";
 
 function App() {
     const root = document.querySelector("#root");
@@ -41,6 +43,8 @@ function App() {
                     <Route path="/movies/:id" element={<Movie />} />
                     <Route path="/actors" element={<Actors />} />
                     <Route path="/actors/:id" element={<Actor />} />
+                    <Route path="/news" element={<News />} />
+                    <Route path="/news/:id" element={<NewsDetail />} />
                 </Route>
             </Route>
         </Routes>

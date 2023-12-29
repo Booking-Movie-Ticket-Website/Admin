@@ -29,7 +29,6 @@ function Actors() {
         defaultShow: false
     });
     const dispatch = useAppDispatch();
-    const [reloadFlag, setReloadFlag] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File>();
     const [gender, setGender] = useState("male");
     const [genderVisible, setGenderVisible] = useState(false);
@@ -80,10 +79,9 @@ function Actors() {
                         }
                     }
                 );
-
                 dispatch(stopLoading());
                 dispatch(sendMessage("Created successfully!"));
-                setReloadFlag(!reloadFlag);
+                setTimeout(() => window.location.reload(), 2000);
             } catch (error) {
                 dispatch(stopLoading());
                 dispatch(sendMessage("Created failed!"));
@@ -103,7 +101,7 @@ function Actors() {
                 })
                 .catch((err) => console.error(err));
         })();
-    }, [reloadFlag]);
+    }, []);
 
     return (
         <>
@@ -169,7 +167,7 @@ function Actors() {
             {deletingMode && (
                 <div className="shadow-xl rounded-xl bg-block mb-6">
                     <div className="bg-primary h-6 rounded-tr-xl rounded-tl-xl"></div>
-                    <div className="p-6 text-[15px]">Select a actor below to delete.</div>
+                    <div className="p-6 text-[15px]">Select an actor below to delete.</div>
                 </div>
             )}
             <div className="bg-block p-6 rounded-3xl shadow-xl">
@@ -328,22 +326,20 @@ function Actors() {
                                         </Tippy>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex gap-2 flex-col">
-                                        <label htmlFor="biography" className="flex gap-1 mb-1 items-center">
-                                            Biography
-                                            <IsRequired />
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="biography"
-                                            placeholder="Biography . . ."
-                                            {...register("biography")}
-                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                        />
-                                        {<span className="text-deepRed">{errors.biography?.message}</span>}
-                                    </div>
+                                <div className="flex gap-2 flex-col">
+                                    <label htmlFor="biography" className="flex gap-1 mb-1 items-center">
+                                        Biography
+                                        <IsRequired />
+                                    </label>
+                                    <textarea
+                                        id="biography"
+                                        placeholder="Biography . . ."
+                                        {...register("biography")}
+                                        className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
+                                    />
+                                    {<span className="text-deepRed">{errors.biography?.message}</span>}
                                 </div>
+
                                 <div className="flex flex-col gap-2">
                                     <label htmlFor="picture" className="flex gap-1 mb-1 items-center">
                                         Profile picture

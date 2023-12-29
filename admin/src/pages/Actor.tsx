@@ -10,8 +10,10 @@ import { useAppDispatch } from "~/hook";
 import convertReleaseDate from "~/utils/convertReleaseDate";
 import usePortal from "react-cool-portal";
 import IsRequired from "~/icons/IsRequired";
-import Tippy from "@tippyjs/react";
+import Tippy from "@tippyjs/react/headless";
 import { convertToBase64 } from "~/utils/convertToBase64";
+import { convertNormalDate } from "~/utils/convertNormalDate";
+import MovieItem from "~/components/MovieItem";
 
 const schema = yup.object().shape({
     fullName: yup.string().required("Full name is required."),
@@ -27,12 +29,17 @@ function Actor() {
     const [gender, setGender] = useState("");
     const [genderVisible, setGenderVisible] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File>();
+    const [profilePicture, setProfilePicture] = useState("");
+    const [moviesList, setMoviesList] = useState<Array<Movie>>([]);
+    const [allMovieIds, setAllMovieIds] = useState<string[]>();
+    const [movieParticipantIds, setMovieParticipantIds] = useState<string[]>();
+
     const {
         register,
         handleSubmit,
         setValue,
         formState: { errors }
-    } = useForm<IActorData>({
+    } = useForm<IActorValidation>({
         resolver: yupResolver(schema),
         defaultValues: {
             fullName: "",
@@ -54,21 +61,57 @@ function Actor() {
 
     useEffect(() => {
         (async () => {
-            await axios
-                .get(`/people/${id}`, { headers: { "Content-Type": "application/json" } })
-                .then((response) => {
-                    setData(response.data);
-                    setGender(response.data.gender);
-                    setValue("fullName", response.data.fullName || "");
-                    setValue("biography", response.data.biography || "");
-                    setValue("dateOfBirth", response.data.dateOfBirth || new Date());
-                    setValue("nationality", response.data.nationality || "");
-                })
-                .catch((error) => console.error(error));
+            try {
+                const response = await axios.get(`/people/${id}`, {
+                    headers: { "Content-Type": "application/json" }
+                });
+                setData(response.data);
+                setGender(response.data.gender);
+                setProfilePicture(response.data.profilePicture);
+                setMovieParticipantIds(
+                    response.data.movieParticipants.map(
+                        (movieParticipant: { movieId: string }) => movieParticipant.movieId
+                    )
+                );
+                setValue("fullName", response.data.fullName || "");
+                setValue("biography", response.data.biography || "");
+                setValue("dateOfBirth", response.data.dateOfBirth || new Date());
+                setValue("nationality", response.data.nationality || "");
+            } catch (error) {
+                console.error(error);
+            }
+        })();
+
+        (async () => {
+            try {
+                const response = await axios.get(`/movies?page=1&take=10`, {
+                    headers: { "Content-Type": "application/json" }
+                });
+                setAllMovieIds(response.data.data.map((movie: { id: string }) => movie.id));
+            } catch (error) {
+                console.error(error);
+            }
         })();
     }, [id, setValue]);
 
-    const onSubmit: SubmitHandler<IActorData> = async (formData) => {
+    useEffect(() => {
+        if (movieParticipantIds && movieParticipantIds.length > 0) {
+            const validIds = movieParticipantIds.filter((id) => allMovieIds?.includes(id));
+            const requests = validIds.map((id) =>
+                axios.get(`/movies/${id}`, {
+                    headers: { "Content-Type": "application/json" }
+                })
+            );
+            Promise.all(requests)
+                .then((responses) => {
+                    const movieDetails = responses.map((response) => response.data);
+                    setMoviesList(movieDetails);
+                })
+                .catch((error) => console.error(error));
+        }
+    }, [movieParticipantIds, allMovieIds]);
+
+    const onSubmit: SubmitHandler<IActorValidation> = async (formData) => {
         hide();
         dispatch(startLoading());
         const fullName = formData.fullName;
@@ -79,6 +122,7 @@ function Actor() {
         (async () => {
             try {
                 const base64ProfilePicture = await convert(selectedFile!);
+                console.log(base64ProfilePicture);
                 await axios.patch(
                     `/people/${id}`,
                     {
@@ -87,7 +131,7 @@ function Actor() {
                         ...(data?.biography !== biography && { biography }),
                         ...(data?.dateOfBirth !== dateOfBirth && { dateOfBirth }),
                         ...(data?.gender !== gender && { gender }),
-                        ...(data?.base64ProfilePicture !== base64ProfilePicture && { base64ProfilePicture })
+                        ...(base64ProfilePicture && { base64ProfilePicture })
                     },
                     {
                         headers: {
@@ -99,6 +143,7 @@ function Actor() {
 
                 dispatch(stopLoading());
                 dispatch(sendMessage("Updated successfully!"));
+                setTimeout(() => window.location.reload(), 2000);
             } catch (error) {
                 dispatch(stopLoading());
                 dispatch(sendMessage("Updated failed!"));
@@ -106,6 +151,19 @@ function Actor() {
             }
         })();
     };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                setProfilePicture(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    console.log(moviesList);
 
     return (
         data && (
@@ -137,6 +195,63 @@ function Actor() {
                         </button>
                     </div>
                 </div>
+                <div className="bg-block p-6 rounded-3xl shadow-xl flex flex-col gap-6">
+                    <div>
+                        <div className="flex items-start gap-6 w-full">
+                            <div className="w-1/3 flex justify-start">
+                                <img
+                                    src={data.profilePicture}
+                                    alt="profile picture"
+                                    className="rounded-full w-72 aspect-square"
+                                />
+                            </div>
+                            <div className="flex w-2/3 flex-col">
+                                <div className="text-primary flex items-center text-xl font-semibold mb-1">
+                                    {data.fullName}
+                                </div>
+                                <div className="flex gap-2 mb-4">
+                                    <span className="py-1 px-2 text-[13px] bg-background whitespace-nowrap inline gap-1 items-center rounded-md border border-blue">
+                                        {data.gender === "male" ? "Actor" : "Actress"}
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="capitalize">
+                                        <span className="text-blue font-medium mr-1">Gender:</span>
+                                        {data.gender}
+                                    </div>
+                                    <div className="capitalize">
+                                        <span className="text-blue font-medium mr-1">Nationality:</span>
+                                        {data.nationality}
+                                    </div>
+                                    <div className="capitalize">
+                                        <span className="text-blue font-medium mr-1">Birthday:</span>
+                                        {convertNormalDate(data.dateOfBirth)}
+                                    </div>
+                                </div>
+                                <div className="capitalize mt-2">
+                                    <span className="text-blue font-medium mr-1">Biography:</span>
+                                    {data.biography}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-blue text-lg font-medium mt-6">Filmography</div>
+                    <ul className="w-full flex flex-wrap gap-6">
+                        {moviesList.length > 0 ? (
+                            moviesList.map((movie: Movie) => (
+                                <MovieItem
+                                    id={movie.id}
+                                    key={movie.id}
+                                    name={movie.name}
+                                    director={movie.director}
+                                    img={movie.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
+                                />
+                            ))
+                        ) : (
+                            <span>The actor has not appeared in any movie.</span>
+                        )}
+                    </ul>
+                </div>
                 <Portal>
                     <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                         <div className="flex items-center justify-center">
@@ -161,7 +276,7 @@ function Actor() {
                                     </i>
                                 </button>
                                 <div className="flex justify-center mb-8">
-                                    <div className="text-white font-semibold text-xl">Create a new actor</div>
+                                    <div className="text-white font-semibold text-xl">Update actor</div>
                                 </div>
                                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
                                     <div className="grid grid-cols-2 gap-4">
@@ -215,7 +330,7 @@ function Actor() {
                                             </label>
                                             <Tippy
                                                 interactive
-                                                onClickOutside={() => setGenderVisible(!genderVisible)}
+                                                onClickOutside={() => setGenderVisible(false)}
                                                 visible={genderVisible}
                                                 offset={[0, -149]}
                                                 render={(attrs) => (
@@ -280,44 +395,51 @@ function Actor() {
                                             </Tippy>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex gap-2 flex-col">
-                                            <label htmlFor="biography" className="flex gap-1 mb-1 items-center">
-                                                Biography
-                                                <IsRequired />
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="biography"
-                                                placeholder="Biography . . ."
-                                                {...register("biography")}
-                                                className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                            />
-                                            {<span className="text-deepRed">{errors.biography?.message}</span>}
-                                        </div>
+                                    <div className="flex gap-2 flex-col">
+                                        <label htmlFor="biography" className="flex gap-1 mb-1 items-center">
+                                            Biography
+                                            <IsRequired />
+                                        </label>
+                                        <textarea
+                                            id="biography"
+                                            placeholder="Biography . . ."
+                                            {...register("biography")}
+                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
+                                        />
+                                        {<span className="text-deepRed">{errors.biography?.message}</span>}
                                     </div>
                                     <div className="flex flex-col gap-2">
                                         <label htmlFor="picture" className="flex gap-1 mb-1 items-center">
                                             Profile picture
                                             <IsRequired />
                                         </label>
-                                        <input
-                                            type="file"
-                                            id="picture"
-                                            accept="image/*"
-                                            onChange={(e) => {
-                                                if (e.target.files) {
-                                                    setSelectedFile(e.target.files[0]);
-                                                }
-                                            }}
-                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:border-primary focus:border focus:border-1 border border-blue border-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                        />
+                                        <div className="flex gap-4 items-center">
+                                            <div className="relative">
+                                                <img
+                                                    src={profilePicture}
+                                                    alt="poster"
+                                                    className="w-[160px] rounded-xl aspect-square"
+                                                />
+                                            </div>
+                                            <input
+                                                type="file"
+                                                id="picture"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    if (e.target.files) {
+                                                        handleFileChange(e);
+                                                        setSelectedFile(e.target.files[0]);
+                                                    }
+                                                }}
+                                                className="bg-[rgba(141,124,221,0.1)] w-full text-sm focus:border-primary focus:border focus:border-1 border border-blue border-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
+                                            />
+                                        </div>
                                     </div>
                                     <button
                                         className="py-3 px-8 mt-3 text-base font-semibold rounded-lg border-blue border hover:border-primary hover:bg-primary"
                                         type="submit"
                                     >
-                                        Create actor
+                                        Update actor
                                     </button>
                                 </form>
                             </div>

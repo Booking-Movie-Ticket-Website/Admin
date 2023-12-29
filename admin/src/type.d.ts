@@ -27,6 +27,13 @@ interface IActor {
     nationality: string;
 }
 
+interface Movie {
+    id: string;
+    name: string;
+    director: string;
+    moviePosters: Array<{ id: number; link: string; isThumb: boolean }>;
+}
+
 interface IMovieData {
     avrStars: number;
     description: string;
@@ -66,7 +73,53 @@ interface IMovieData {
 
 interface IActorData {
     fullName: string;
+    dateOfBirth: string;
+    biography: string;
+    nationality: string;
+    id: string;
+    gender: string;
+    profilePicture: string;
+    movieParticipants: Array<{ id: string; movieId: string; peopleId: string }>;
+}
+
+interface IActorValidation {
+    fullName: string;
     dateOfBirth: Date;
     biography: string;
     nationality: string;
+}
+
+interface INews {
+    id: string;
+    title: string;
+    shortDesc: string;
+    newsPictures: [
+        {
+            id: string;
+            link: string;
+            newsId: string;
+        }
+    ];
+}
+
+interface INewsValidation {
+    title: string;
+    shortDesc: string;
+    fullDesc: string;
+    base64NewsPictures: File[];
+}
+
+interface INewsData {
+    id: string;
+    title: string;
+    shortDesc: string;
+    fullDesc: string;
+    newsPictures: [
+        {
+            id: string;
+            link: string;
+            newsId: string;
+        }
+    ];
+    createdAt: Date;
 }

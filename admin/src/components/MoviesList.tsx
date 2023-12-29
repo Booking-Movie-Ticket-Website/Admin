@@ -5,13 +5,6 @@ import React from "react";
 import SkeletonItem from "./SkeletonItem";
 import ToolTip from "@tippyjs/react";
 
-interface Movie {
-    id: string;
-    name: string;
-    director: string;
-    moviePosters: Array<{ id: number; link: string }>;
-}
-
 interface Props {
     type: string;
     deletingMode: boolean;
@@ -48,7 +41,7 @@ const MoviesList: React.FC<Props> = ({ type, deletingMode, reloadFlag }) => {
                                     key={movie.id}
                                     name={movie.name}
                                     director={movie.director}
-                                    img={movie.moviePosters[0].link}
+                                    img={movie.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
                                     deletingMode={deletingMode}
                                 />
                             ))

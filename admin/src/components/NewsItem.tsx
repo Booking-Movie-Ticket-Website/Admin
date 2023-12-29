@@ -7,14 +7,14 @@ import { useAppDispatch } from "~/hook";
 import { startLoading, stopLoading } from "~/actions/loading";
 
 interface Props {
-    name: string;
-    director: string;
-    img: string;
+    title: string;
+    shortDesc: string;
     id: string;
     deletingMode?: boolean;
+    newsPicture: string;
 }
 
-const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = false }) => {
+const NewsItem: React.FC<Props> = ({ title, shortDesc, id, newsPicture, deletingMode = false }) => {
     const [selectedId, setSelectedId] = useState(String);
     const overlayRef = useRef<HTMLDivElement>(null);
     const { Portal, hide, show } = usePortal({
@@ -26,7 +26,7 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = fa
         hide();
         dispatch(startLoading());
         await axios
-            .delete(`/movies/${selectedId}`, {
+            .delete(`/news/${selectedId}`, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
@@ -35,73 +35,69 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = fa
             .then(() => {
                 dispatch(stopLoading());
                 window.location.reload();
-                toast("Delete successfully!");
+                toast("Deleted successfully!");
             })
             .catch((error) => {
                 console.error(error);
-                toast("Delete failed!");
+                toast("Deleted failed!");
                 hide();
             });
     };
 
     return (
         <>
-            <li className="w-[calc((100%-96px)/5)]">
-                {deletingMode ? (
-                    <div
-                        className="cursor-pointer"
-                        onClick={() => {
-                            setSelectedId(id);
-                            show();
-                            overlayRef.current?.classList.replace("hidden", "flex");
-                        }}
-                    >
-                        <div className="group overflow-hidden rounded-xl aspect-square shadow-sm relative">
-                            <img
-                                src={img}
-                                alt="movie poster"
-                                className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
-                            />
-
-                            <div
-                                ref={overlayRef}
-                                className="absolute top-0 bottom-0 right-0 left-0 hidden justify-center items-center"
+            {deletingMode ? (
+                <li
+                    onClick={() => {
+                        setSelectedId(id);
+                        show();
+                        overlayRef.current?.classList.replace("hidden", "flex");
+                    }}
+                    className="w-full h-[250px] flex gap-6 bg-background border rounded-xl overflow-hidden border-blue hover:border-primary relative"
+                >
+                    <a href={`/news/${id}`} className="w-1/3 absolute top-0 left-0 bottom-0 right-0">
+                        <img src={newsPicture} alt="news picture" className="w-full h-full" />
+                    </a>
+                    <div className="ml-[calc(33%+16px)] p-6 flex flex-col justify-center">
+                        <a href={`/news/${id}`} className="text-blue text-lg font-medium hover:text-primary">
+                            {title}
+                        </a>
+                        <div className="mt-2">
+                            <div>{shortDesc}</div>
+                        </div>
+                        <div className="mt-6">
+                            <a
+                                href={`/news/${id}`}
+                                className="inline-block mt-4 border border-blue py-3 px-6 text-[15px] font-medium rounded-lg hover:border-primary hover:bg-primary"
                             >
-                                <i className="icon">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 48 48"
-                                        width="130"
-                                        height="130"
-                                    >
-                                        <path
-                                            className="fill-primary"
-                                            d="M40.6 12.1L17 35.7 7.4 26.1 4.6 29 17 41.3 43.4 14.9z"
-                                        />
-                                    </svg>
-                                </i>
-                            </div>
+                                Read more
+                            </a>
                         </div>
                     </div>
-                ) : (
-                    <a href={`/movies/${id}`}>
-                        <div className="group overflow-hidden rounded-xl aspect-square shadow-sm">
-                            <img
-                                src={img}
-                                alt="movie poster"
-                                className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
-                            />
+                </li>
+            ) : (
+                <li className="w-full h-[250px] flex gap-6 bg-background border rounded-xl overflow-hidden border-blue hover:border-primary relative">
+                    <a href={`/news/${id}`} className="w-1/3 absolute top-0 left-0 bottom-0 right-0">
+                        <img src={newsPicture} alt="news picture" className="w-full h-full" />
+                    </a>
+                    <div className="ml-[calc(33%+16px)] p-6 flex flex-col justify-center">
+                        <a href={`/news/${id}`} className="text-blue text-lg font-medium hover:text-primary">
+                            {title}
+                        </a>
+                        <div className="mt-2">
+                            <div>{shortDesc}</div>
                         </div>
-                    </a>
-                )}
-                <div className="pt-2">
-                    <a className="text-base hover:text-primary text-blue" href={`/movies/${id}`}>
-                        {name}
-                    </a>
-                    <div className="text-[13px]">{director}</div>
-                </div>
-            </li>
-
+                        <div className="mt-6">
+                            <a
+                                href={`/news/${id}`}
+                                className="inline-block mt-4 border border-blue py-3 px-6 text-[15px] font-medium rounded-lg hover:border-primary hover:bg-primary"
+                            >
+                                Read more
+                            </a>
+                        </div>
+                    </div>
+                </li>
+            )}
             <Portal>
                 <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                     <div className="flex items-center justify-center">
@@ -129,7 +125,7 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = fa
                                 </i>
                             </button>
                             <p className="mb-4 mt-4 text-[15px]">
-                                Delete movie <span className="text-blue">"{name}"</span>?
+                                Delete news <span className="text-blue">"{title}"</span>?
                             </p>
                             <div className="flex gap-6">
                                 <button
@@ -156,4 +152,4 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = fa
     );
 };
 
-export default MovieItem;
+export default NewsItem;

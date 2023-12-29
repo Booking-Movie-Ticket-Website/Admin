@@ -13,6 +13,8 @@ import Actors from "./pages/Actors";
 import Actor from "./pages/Actor";
 import News from "./pages/News";
 import NewsDetail from "./pages/NewsDetail";
+import Theaters from "./pages/Theaters";
+import Theater from "./pages/Theater";
 
 function App() {
     const root = document.querySelector("#root");
@@ -45,6 +47,8 @@ function App() {
                     <Route path="/actors/:id" element={<Actor />} />
                     <Route path="/news" element={<News />} />
                     <Route path="/news/:id" element={<NewsDetail />} />
+                    <Route path="/theaters" element={<Theaters />} />
+                    <Route path="/theaters/:id" element={<Theater />} />
                 </Route>
             </Route>
         </Routes>

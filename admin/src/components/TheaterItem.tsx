@@ -7,14 +7,14 @@ import { useAppDispatch } from "~/hook";
 import { startLoading, stopLoading } from "~/actions/loading";
 
 interface Props {
-    name: string;
-    director: string;
-    img: string;
     id: string;
-    deletingMode?: boolean;
+    name: string;
+    city: string;
+    address: string;
+    deletingMode: boolean;
 }
 
-const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = false }) => {
+const TheaterItem: React.FC<Props> = ({ name, city, address, id, deletingMode = false }) => {
     const [selectedId, setSelectedId] = useState(String);
     const overlayRef = useRef<HTMLDivElement>(null);
     const { Portal, hide, show } = usePortal({
@@ -26,7 +26,7 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = fa
         hide();
         dispatch(startLoading());
         await axios
-            .delete(`/movies/${selectedId}`, {
+            .delete(`/theaters/${selectedId}`, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
@@ -34,8 +34,10 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = fa
             })
             .then(() => {
                 dispatch(stopLoading());
-                window.location.reload();
                 toast("Deleted successfully!");
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
             })
             .catch((error) => {
                 console.error(error);
@@ -46,7 +48,7 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = fa
 
     return (
         <>
-            <li className="w-[calc((100%-96px)/5)]">
+            <li className="rounded-xl border border-blue hover:border-primary hover:bg-background p-4">
                 {deletingMode ? (
                     <div
                         className="cursor-pointer"
@@ -56,52 +58,34 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = fa
                             overlayRef.current?.classList.replace("hidden", "flex");
                         }}
                     >
-                        <div className="group overflow-hidden rounded-xl aspect-square shadow-sm relative">
-                            <img
-                                src={img}
-                                alt="movie poster"
-                                className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
-                            />
-
-                            <div
-                                ref={overlayRef}
-                                className="absolute top-0 bottom-0 right-0 left-0 hidden justify-center items-center"
-                            >
-                                <i className="icon">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 48 48"
-                                        width="130"
-                                        height="130"
-                                    >
-                                        <path
-                                            className="fill-primary"
-                                            d="M40.6 12.1L17 35.7 7.4 26.1 4.6 29 17 41.3 43.4 14.9z"
-                                        />
-                                    </svg>
-                                </i>
+                        <div className="text-center text-lg font-medium text-blue">{name}</div>
+                        <div className="flex flex-col px-4 gap-2 mt-4">
+                            <div className="">
+                                <span className="text-blue font-medium">City: </span>
+                                {city}
+                            </div>
+                            <div className="">
+                                <span className="text-blue font-medium">Address: </span>
+                                {address}
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <a href={`/movies/${id}`}>
-                        <div className="group overflow-hidden rounded-xl aspect-square shadow-sm">
-                            <img
-                                src={img}
-                                alt="movie poster"
-                                className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
-                            />
+                    <a href={`/theaters/${id}`} className="">
+                        <div className="text-center text-lg font-medium text-blue">{name}</div>
+                        <div className="flex flex-col px-4 gap-2 mt-4">
+                            <div className="">
+                                <span className="text-blue font-medium">City: </span>
+                                {city}
+                            </div>
+                            <div className="">
+                                <span className="text-blue font-medium">Address: </span>
+                                {address}
+                            </div>
                         </div>
                     </a>
                 )}
-                <div className="pt-2">
-                    <a className="text-base hover:text-primary text-blue" href={`/movies/${id}`}>
-                        {name}
-                    </a>
-                    <div className="text-[13px]">{director}</div>
-                </div>
             </li>
-
             <Portal>
                 <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                     <div className="flex items-center justify-center">
@@ -129,7 +113,7 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = fa
                                 </i>
                             </button>
                             <p className="mb-4 mt-4 text-[15px]">
-                                Delete movie <span className="text-blue">"{name}"</span>?
+                                Delete theater <span className="text-blue">"{name}"</span>?
                             </p>
                             <div className="flex gap-6">
                                 <button
@@ -156,4 +140,4 @@ const MovieItem: React.FC<Props> = ({ name, img, director, id, deletingMode = fa
     );
 };
 
-export default MovieItem;
+export default TheaterItem;

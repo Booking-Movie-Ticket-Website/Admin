@@ -123,3 +123,26 @@ interface INewsData {
     ];
     createdAt: Date;
 }
+
+interface ITheaters {
+    id: string;
+    name: string;
+    city: string;
+    address: string;
+    rooms: [
+        {
+            id: string;
+            name: string;
+            capacity: string;
+            type: string;
+            theaterId: string;
+            showings: [{ id: string; startTime: string; endTime: string; movieId: string; roomId: string }];
+        }
+    ];
+}
+
+interface ITheatersValidation {
+    name: string;
+    city: string;
+    address: string;
+}

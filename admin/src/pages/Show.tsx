@@ -10,7 +10,9 @@ import { useAppDispatch } from "~/hook";
 import usePortal from "react-cool-portal";
 import IsRequired from "~/icons/IsRequired";
 import Tippy from "@tippyjs/react/headless";
-import Seats from "./Seats";
+import convertTimeStamp from "~/utils/convertTimeStamp";
+import convertReleaseDate from "~/utils/convertReleaseDate";
+import compareDate from "~/utils/compareDate";
 
 const schema = yup.object().shape({
     startTime: yup.date().required("Start time is required.").typeError("Start time must be a date.")
@@ -34,16 +36,15 @@ function Show() {
         }
     });
 
-    const [availableShows, setAvailableShows] = useState<Array<IShows>>();
-    const [unavailableShows, setUnavailableShows] = useState<Array<IShows>>();
-    const [deletingMode, setDeletingMode] = useState(false);
     const [moviesData, setMoviesData] = useState<Array<IMovieData>>([]);
+    const [movieShow, setMovieShow] = useState<IMovieData>();
     const [selectedMovie, setSelectedMovie] = useState<{ id: string; name: string; director: string }>({
         id: "",
         name: "",
         director: ""
     });
-    const [theatersData, setTheatersData] = useState<Array<IShows>>([]);
+    const [theatersData, setTheatersData] = useState<Array<ITheaters>>([]);
+    const [theaterShow, setTheaterShow] = useState<ITheaters>();
     const [roomsData, setRoomsData] = useState<Array<IRooms>>([]);
     const [selectedRoom, setSelectedRoom] = useState<{ id: string; name: string; type: string }>({
         id: "",
@@ -56,13 +57,13 @@ function Show() {
     useEffect(() => {
         (async () => {
             try {
-                const response = await axios.get(`/shows/${id}`, {
+                const response = await axios.get(`/showings/${id}`, {
                     headers: { "Content-Type": "application/json" }
                 });
                 setData(response.data);
                 setSelectedMovie(response.data.movie);
                 setSelectedRoom(response.data.room);
-                setValue("startTime", response.data.startTime || new Date());
+                setValue("startTime", convertReleaseDate(response.data.startTime) || new Date());
             } catch (error) {
                 console.error(error);
             }
@@ -72,7 +73,7 @@ function Show() {
             await axios
                 .get(`/movies?page=1&take=20`, { headers: { "Content-Type": "application/json" } })
                 .then((response) => {
-                    setMoviesData(response.data.data);
+                    setMoviesData(response.data.data.filter((movie) => !compareDate(movie.releaseDate)));
                 })
                 .catch((error) => console.error(error));
         })();
@@ -96,43 +97,45 @@ function Show() {
         })();
     }, [id, setValue]);
 
+    useEffect(() => {
+        if (moviesData.length > 0 && theatersData.length > 0) {
+            setMovieShow(moviesData.find((movie) => movie.id === data?.movieId));
+            setTheaterShow(theatersData.find((theater) => theater.id === data?.room.theaterId));
+        }
+    }, [moviesData, theatersData, data]);
+
     const onSubmit: SubmitHandler<IShowsValidation> = async (formData) => {
         hide();
         dispatch(startLoading());
-        const name = formData.name;
-        const capacity = formData.capacity;
-        const theaterId = selectedTheater?.id;
-        const type = formData.type;
-        if (theaterId === "") setTheaterError(true);
-        else setTheaterError(false);
-        if (!theaterError) {
-            (async () => {
-                try {
-                    await axios.patch(
-                        `/rooms/${id}`,
-                        {
-                            ...(data?.name !== name && { name }),
-                            ...(data?.capacity !== capacity && { capacity }),
-                            ...(data?.type !== type && { type }),
-                            ...(data?.theaterId !== theaterId && { theaterId })
-                        },
-                        {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
-                            }
+        const startTime = formData.startTime.toString();
+        const movieId = selectedMovie?.id;
+        const roomId = selectedRoom?.id;
+
+        (async () => {
+            try {
+                await axios.patch(
+                    `/showings/${id}`,
+                    {
+                        ...(data?.startTime !== startTime && { startTime }),
+                        ...(data?.movieId !== movieId && { movieId }),
+                        ...(data?.room.id !== roomId && { roomId })
+                    },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
                         }
-                    );
-                    dispatch(stopLoading());
-                    dispatch(sendMessage("Updated successfully!"));
-                    setTimeout(() => window.location.reload(), 2000);
-                } catch (error) {
-                    dispatch(stopLoading());
-                    dispatch(sendMessage("Updated failed!"));
-                    console.error(error);
-                }
-            })();
-        }
+                    }
+                );
+                dispatch(stopLoading());
+                dispatch(sendMessage("Updated successfully!"));
+                setTimeout(() => window.location.reload(), 2000);
+            } catch (error) {
+                dispatch(stopLoading());
+                dispatch(sendMessage("Updated failed!"));
+                console.error(error);
+            }
+        })();
     };
 
     return (
@@ -166,51 +169,42 @@ function Show() {
                     </div>
                 </div>
                 <div className="bg-block p-6 rounded-3xl shadow-xl flex flex-col gap-6">
-                    <div className="rounded-xl border border-blue hover:border-primary hover:bg-background p-4">
-                        <div className="group overflow-hidden rounded-xl shadow-sm">
-                            <div className="flex flex-col gap-2 justify-center">
-                                <div className="rounded-xl overflow-hidden w-full h-[200px]">
-                                    {/* <img
-                                        src={movie?.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
-                                        alt="movie poster"
-                                        className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
-                                    /> */}
-                                </div>
-                                <div className="flex flex-col">
-                                    <div className="text-center">
-                                        <div className="text-base text-blue">{movieD.name}</div>
-                                        <div className="text-[13px]">{movie?.director}</div>
+                    <div className="flex gap-6 justify-center">
+                        <div className="rounded-xl overflow-hidden w-2/3">
+                            <img
+                                src={movieShow?.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
+                                alt="movie poster"
+                                className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
+                            />
+                        </div>
+                        <div className="flex w-1/3 flex-col">
+                            <div className="text-base text-blue">{movieShow?.name}</div>
+                            <div className="text-[13px]">{movieShow?.director}</div>
+                            <div className="flex gap-2 items-center mt-4">
+                                <div>
+                                    <div className="text-blue font-medium">
+                                        {theaterShow?.name} - {theaterShow?.city}
                                     </div>
-                                    <div className="flex gap-2 items-center mt-4">
-                                        <i>
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 24 24"
-                                                width={36}
-                                                height={36}
-                                                id="location"
-                                            >
-                                                <path
-                                                    className="fill-white group-hover:fill-primary"
-                                                    d="M12,2a8,8,0,0,0-8,8c0,5.4,7.05,11.5,7.35,11.76a1,1,0,0,0,1.3,0C13,21.5,20,15.4,20,10A8,8,0,0,0,12,2Zm0,17.65c-2.13-2-6-6.31-6-9.65a6,6,0,0,1,12,0C18,13.34,14.13,17.66,12,19.65ZM12,6a4,4,0,1,0,4,4A4,4,0,0,0,12,6Zm0,6a2,2,0,1,1,2-2A2,2,0,0,1,12,12Z"
-                                                ></path>
-                                            </svg>
-                                        </i>
-                                        <div>
-                                            <div className="text-blue font-medium">
-                                                {theater?.name} - {theater?.city}
-                                            </div>
-                                            <div className="">{theater?.address}</div>
-                                            <div>Start time: {convertTimeStamp(startTime)}</div>
-                                        </div>
+                                    <div className="">{theaterShow?.address}</div>
+                                    <div>Start time: {convertTimeStamp(data.startTime)}</div>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 items-center mt-4">
+                                <div>
+                                    <div className="text-blue font-medium capitalize">{data.room.name}</div>
+                                    <div className="">
+                                        <span className="text-blue font-medium">Room type: </span>
+                                        {data.room.type}
+                                    </div>
+                                    <div className="">
+                                        <span className="text-blue font-medium">Capacity: </span>
+                                        {data.room.capacity}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="mt-16"></div>
-                <Seats />
                 <Portal>
                     <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                         <div className="flex items-center justify-center">
@@ -235,7 +229,7 @@ function Show() {
                                     </i>
                                 </button>
                                 <div className="flex justify-center mb-8">
-                                    <div className="text-white font-semibold text-xl">Create a show</div>
+                                    <div className="text-white font-semibold text-xl">Update show</div>
                                 </div>
                                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
                                     <div className="text-blue text-[15px]">Show Information</div>
@@ -292,7 +286,7 @@ function Show() {
                                                 visible={moviesMenuVisible}
                                                 interactive
                                                 onClickOutside={() => setMoviesMenuVisible(false)}
-                                                offset={[0, -315]}
+                                                offset={[0, -279]}
                                                 render={(attrs) => (
                                                     <ul
                                                         className={`border border-primary rounded-lg p-2 max-h-[300px] w-[384px] overflow-y-scroll no-scrollbar bg-background ${
@@ -345,7 +339,6 @@ function Show() {
                                                 </div>
                                             </Tippy>
                                         </div>
-                                        {/* {<span className="text-deepRed">{errors.capacity?.message}</span>} */}
                                     </div>
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="movieParticipantIds" className="flex gap-1 mb-1 items-center">
@@ -472,7 +465,7 @@ function Show() {
                                         className="py-3 px-8 mt-3 text-base font-semibold rounded-lg border-blue border hover:border-primary hover:bg-primary"
                                         type="submit"
                                     >
-                                        Create a show
+                                        Update show
                                     </button>
                                 </form>
                             </div>

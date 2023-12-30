@@ -75,6 +75,7 @@ const ShowItem: React.FC<Props> = ({ id, movie, startTime, theater, deletingMode
                                         <div className="text-base text-blue">{movie?.name}</div>
                                         <div className="text-[13px]">{movie?.director}</div>
                                     </div>
+                                    {}
                                     <div className="flex gap-2 items-center mt-4">
                                         <i>
                                             <svg

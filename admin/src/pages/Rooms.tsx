@@ -86,7 +86,7 @@ function Rooms() {
     useEffect(() => {
         (async () => {
             await axios
-                .get("/rooms?page=1&take=10", { headers: { "Content-Type": "application/json" } })
+                .get("/rooms?page=1&take=20", { headers: { "Content-Type": "application/json" } })
                 .then((response) => {
                     setData(response.data.data);
                 })

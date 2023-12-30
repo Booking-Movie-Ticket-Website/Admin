@@ -9,9 +9,22 @@ interface IMovie {
     moviePosters: Array<IMoviePosters>;
 }
 
+interface IMovieData {
+    name: string;
+    duration: number;
+    description: string;
+    trailerLink: string;
+    releaseDate: Date;
+    nation: string;
+    director: string;
+    moviePosters: Array<IMoviePosters>;
+    id: string;
+}
+
 interface IMoviePosters {
     base64?: File;
     isThumb: boolean;
+    link: string;
 }
 
 interface IActors {
@@ -197,7 +210,7 @@ interface ISeatData {
     pairWith: string;
 }
 
-interface IShowings {
+interface IShows {
     id: string;
     startTime: string;
     endTime: string;
@@ -212,6 +225,6 @@ interface IShowings {
     };
 }
 
-interface IShowingsValidation {
+interface IShowsValidation {
     startTime: Date;
 }

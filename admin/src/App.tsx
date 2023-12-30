@@ -18,7 +18,8 @@ import Theater from "./pages/Theater";
 import Rooms from "./pages/Rooms";
 import Room from "./pages/Room";
 import Seats from "./pages/Seats";
-import Showings from "./pages/Showings";
+import Shows from "./pages/Shows";
+import Show from "./pages/Show";
 
 function App() {
     const root = document.querySelector("#root");
@@ -56,7 +57,8 @@ function App() {
                     <Route path="/rooms" element={<Rooms />} />
                     <Route path="/rooms/:id" element={<Room />} />
                     {/* <Route path="/seats" element={<Seats />} /> */}
-                    <Route path="/showings" element={<Showings />} />
+                    <Route path="/shows" element={<Shows />} />
+                    <Route path="/shows/:id" element={<Show />} />
                 </Route>
             </Route>
         </Routes>

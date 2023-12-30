@@ -10,6 +10,7 @@ import { useAppDispatch } from "~/hook";
 import usePortal from "react-cool-portal";
 import IsRequired from "~/icons/IsRequired";
 import Tippy from "@tippyjs/react/headless";
+import Seats from "./Seats";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),
@@ -173,6 +174,8 @@ function Room() {
                         </div>
                     </div>
                 </div>
+                <div className="mt-16"></div>
+                <Seats />
                 <Portal>
                     <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                         <div className="flex items-center justify-center">

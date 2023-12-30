@@ -174,3 +174,44 @@ interface IRoomData {
         address: string;
     };
 }
+
+interface ISeats {
+    id: string;
+    seatRow: string;
+    seatColumn: string;
+    type: string;
+    pairWith: string | null;
+    roomId: string;
+}
+
+interface ISeatsValidation {
+    numberOfRow: string;
+    numberOfColumn: string;
+}
+
+interface ISeatData {
+    roomId: string;
+    numberOfRow: string;
+    numberOfColumn: string;
+    seatType: string;
+    pairWith: string;
+}
+
+interface IShowings {
+    id: string;
+    startTime: string;
+    endTime: string;
+    movieId: string;
+    roomId: string;
+    room: {
+        id: string;
+        name: string;
+        capacity: string;
+        type: string;
+        theaterId: string;
+    };
+}
+
+interface IShowingsValidation {
+    startTime: Date;
+}

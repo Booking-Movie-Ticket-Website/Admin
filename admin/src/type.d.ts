@@ -146,3 +146,31 @@ interface ITheatersValidation {
     city: string;
     address: string;
 }
+
+interface IRooms {
+    id: string;
+    name: string;
+    capacity: string;
+    type: string;
+    theaterId: string;
+}
+
+interface IRoomsValidation {
+    name: string;
+    capacity: string;
+    type: string;
+}
+
+interface IRoomData {
+    id: string;
+    name: string;
+    capacity: string;
+    type: string;
+    theaterId: string;
+    theater: {
+        id: string;
+        name: string;
+        city: string;
+        address: string;
+    };
+}

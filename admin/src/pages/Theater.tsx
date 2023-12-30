@@ -9,7 +9,6 @@ import { sendMessage } from "~/actions/message";
 import { useAppDispatch } from "~/hook";
 import usePortal from "react-cool-portal";
 import IsRequired from "~/icons/IsRequired";
-import Tippy from "@tippyjs/react/headless";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),

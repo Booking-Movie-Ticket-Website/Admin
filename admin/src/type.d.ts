@@ -223,8 +223,65 @@ interface IShows {
         type: string;
         theaterId: string;
     };
+    movie: {
+        id: string;
+        name: string;
+        duration: number;
+        description: string;
+        trailerLink: string;
+        releaseDate: string;
+        nation: string;
+        totalReviews: string;
+        avrStars: number;
+        isActive: boolean;
+        director: string;
+        moviePosters: [
+            {
+                id: string;
+                link: string;
+                movieId: string;
+                isThumb: boolean;
+            }
+        ];
+    };
+    showingSeats: Array<{
+        id: string;
+        seatRow: string;
+        seatColumn: string;
+        type: string;
+        roomId: string;
+        price: string;
+        isBooked: boolean;
+    }>;
 }
 
 interface IShowsValidation {
     startTime: Date;
+}
+
+interface IBookings {
+    id: string;
+    totalPrice: number;
+    status: string;
+    userId: string;
+    showingId: string;
+    user: {
+        id: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        gender: string;
+        profilePicture: null;
+        phoneNumber: string;
+        address: string;
+        dateOfBirth: string;
+        roleId: string;
+    };
+    showing: {
+        id: string;
+        startTime: string;
+        endTime: string;
+        movieId: string;
+        roomId: string;
+    };
 }

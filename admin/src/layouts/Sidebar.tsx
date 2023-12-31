@@ -313,6 +313,42 @@ function Sidebar() {
                         </>
                     )}
                 </NavLink>
+                <NavLink
+                    to="/bookings"
+                    className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
+                >
+                    {({ isActive }) => (
+                        <>
+                            <i className="flex flex-start mr-2 w-[26px] items-center h-[26px]">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    enableBackground="new 0 0 24 24"
+                                    width={26}
+                                    height={26}
+                                    viewBox="0 0 24 24"
+                                    id="online-booking"
+                                >
+                                    <g>
+                                        <path
+                                            className={`${
+                                                isActive ? "fill-white" : "fill-disabled"
+                                            } group-hover:fill-white`}
+                                            d="M15.5,2h-7C6.6,2,5,3.6,5,5.5v13C5,20.4,6.6,22,8.5,22h7c1.9,0,3.5-1.6,3.5-3.5v-13C19,3.6,17.4,2,15.5,2z M17,18.5
+			c0,0.8-0.7,1.5-1.5,1.5h-7C7.7,20,7,19.3,7,18.5v-13C7,4.7,7.7,4,8.5,4h7C16.3,4,17,4.7,17,5.5V18.5z"
+                                        ></path>
+                                        <path
+                                            className={`${
+                                                isActive ? "fill-white" : "fill-disabled"
+                                            } group-hover:fill-white`}
+                                            d="M13,5h-2c-0.6,0-1,0.4-1,1s0.4,1,1,1h2c0.6,0,1-0.4,1-1S13.6,5,13,5z"
+                                        ></path>
+                                    </g>
+                                </svg>
+                            </i>
+                            Bookings
+                        </>
+                    )}
+                </NavLink>
             </div>
         </div>
     );

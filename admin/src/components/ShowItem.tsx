@@ -58,7 +58,48 @@ const ShowItem: React.FC<Props> = ({ id, movie, startTime, theater, deletingMode
                             show();
                             overlayRef.current?.classList.replace("hidden", "flex");
                         }}
-                    ></div>
+                    >
+                        <div className="group overflow-hidden rounded-xl shadow-sm">
+                            <div className="flex flex-col gap-2 justify-center">
+                                <div className="rounded-xl overflow-hidden w-full h-[200px]">
+                                    <img
+                                        src={movie?.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
+                                        alt="movie poster"
+                                        className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
+                                    />
+                                </div>
+                                <div className="flex flex-col">
+                                    <div className="text-center">
+                                        <div className="text-base text-blue">{movie?.name}</div>
+                                        <div className="text-[13px]">{movie?.director}</div>
+                                    </div>
+                                    <div className="flex gap-2 items-center mt-4">
+                                        <i>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24"
+                                                width={36}
+                                                height={36}
+                                                id="location"
+                                            >
+                                                <path
+                                                    className="fill-white group-hover:fill-primary"
+                                                    d="M12,2a8,8,0,0,0-8,8c0,5.4,7.05,11.5,7.35,11.76a1,1,0,0,0,1.3,0C13,21.5,20,15.4,20,10A8,8,0,0,0,12,2Zm0,17.65c-2.13-2-6-6.31-6-9.65a6,6,0,0,1,12,0C18,13.34,14.13,17.66,12,19.65ZM12,6a4,4,0,1,0,4,4A4,4,0,0,0,12,6Zm0,6a2,2,0,1,1,2-2A2,2,0,0,1,12,12Z"
+                                                ></path>
+                                            </svg>
+                                        </i>
+                                        <div>
+                                            <div className="text-blue font-medium">
+                                                {theater?.name} - {theater?.city}
+                                            </div>
+                                            <div className="">{theater?.address}</div>
+                                            <div>Start time: {convertTimeStamp(startTime)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 ) : (
                     <a href={`/shows/${id}`} className="">
                         <div className="group overflow-hidden rounded-xl shadow-sm">

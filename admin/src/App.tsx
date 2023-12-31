@@ -20,6 +20,8 @@ import Room from "./pages/Room";
 import Seats from "./pages/Seats";
 import Shows from "./pages/Shows";
 import Show from "./pages/Show";
+import Bookings from "./pages/Bookings";
+import Booking from "./pages/Booking";
 
 function App() {
     const root = document.querySelector("#root");
@@ -59,6 +61,8 @@ function App() {
                     {/* <Route path="/seats" element={<Seats />} /> */}
                     <Route path="/shows" element={<Shows />} />
                     <Route path="/shows/:id" element={<Show />} />
+                    <Route path="/bookings" element={<Bookings />} />
+                    <Route path="bookings/:id" element={<Booking />} />
                 </Route>
             </Route>
         </Routes>

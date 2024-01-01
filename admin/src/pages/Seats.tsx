@@ -24,6 +24,14 @@ interface Props {
 const Seats: React.FC<Props> = ({ id }) => {
     const [data, setData] = useState<Array<ISeats>>();
     const [numsOfCol, setNumsOfCol] = useState<number>(0);
+    const [updating, setUpdating] = useState(false);
+    const [selectedSeats, setSelectedSeats] = useState<
+        {
+            id: string;
+            seatRow: string;
+            type: string;
+        }[]
+    >([]);
     const { Portal, show, hide } = usePortal({
         defaultShow: false
     });
@@ -73,6 +81,36 @@ const Seats: React.FC<Props> = ({ id }) => {
                 });
         })();
     };
+    const handleUpdate = async () => {
+        dispatch(startLoading());
+
+        await axios
+            .patch(
+                `/seats/update-to-type-couple`,
+                {
+                    firstSeatId: selectedSeats[0].id,
+                    secondSeatId: selectedSeats[1].id
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
+                }
+            )
+            .then(() => {
+                dispatch(stopLoading());
+                dispatch(sendMessage("Updated sucessfully!"));
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            })
+            .catch((error) => {
+                dispatch(stopLoading());
+                dispatch(sendMessage("Updated failed!"));
+                console.error(error);
+            });
+    };
 
     const handleDelete = async () => {
         hide();
@@ -107,6 +145,30 @@ const Seats: React.FC<Props> = ({ id }) => {
                 .catch((err) => console.error(err));
         })();
     }, [id]);
+
+    const handleChooseSeat = (
+        selectedSeat: {
+            id: string;
+            seatRow: string;
+            type: string;
+        },
+        newSeat: {
+            id: string;
+            seatRow: string;
+            type: string;
+        }
+    ) => {
+        if (selectedSeat.seatRow === newSeat.seatRow) {
+            if (
+                Math.abs(parseInt(selectedSeat.id) - parseInt(newSeat.id)) === 1 &&
+                selectedSeat.type !== "couple" &&
+                newSeat.type !== "couple"
+            )
+                return true;
+            else return false;
+        }
+        return false;
+    };
 
     return (
         data && (
@@ -168,8 +230,13 @@ const Seats: React.FC<Props> = ({ id }) => {
                                 Delete all
                             </button>
                             <button
-                                onClick={() => handleDelete()}
-                                className={`bg-block rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3`}
+                                onClick={() => {
+                                    setUpdating(!updating);
+                                    setSelectedSeats([]);
+                                }}
+                                className={`bg-block rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 ${
+                                    updating ? "border-primary bg-primary" : ""
+                                }`}
                             >
                                 <i className="mr-1">
                                     <svg
@@ -189,6 +256,33 @@ const Seats: React.FC<Props> = ({ id }) => {
                             </button>
                         </div>
                     </div>
+                    {updating && (
+                        <div className="shadow-xl rounded-xl bg-block mb-6">
+                            <div className="bg-primary h-6 rounded-tr-xl rounded-tl-xl"></div>
+                            <div className="flex gap-6 items-center p-6 text-[15px]">
+                                <div>Select 2 seats below to update to couple.</div>
+                                <div className="flex gap-6">
+                                    <button
+                                        className={`px-5 py-2 border border-blue hover:border-primary hover:bg-primary rounded-lg ${
+                                            selectedSeats.length !== 2 ? "opacity-50 pointer-events-none" : ""
+                                        }`}
+                                        onClick={() => handleUpdate()}
+                                    >
+                                        Update
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setUpdating(false);
+                                            setSelectedSeats([]);
+                                        }}
+                                        className="px-5 py-2 border border-blue hover:border-primary hover:bg-primary rounded-lg"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="w-full border-b-4 border-primary mt-16 mb-2"></div>
                     <div className="w-full text-center mb-32 text-lg">Screen</div>
                     {numsOfCol === 0 ? (
@@ -198,14 +292,58 @@ const Seats: React.FC<Props> = ({ id }) => {
                             className="grid gap-6 w-full"
                             style={{ gridTemplateColumns: `repeat(${numsOfCol}, minmax(0, 1fr))` }}
                         >
-                            {data.map((seat) => (
-                                <SeatItem
-                                    key={seat.id}
-                                    id={seat.id}
-                                    numberOfColumn={seat.seatColumn}
-                                    numberOfRow={seat.seatRow}
-                                />
-                            ))}
+                            {data.map((seat) =>
+                                updating ? (
+                                    <div
+                                        key={seat.id}
+                                        className={`cursor-pointer rounded-lg p-2 border border-blue  hover:bg-primary hover:border-primary ${
+                                            seat.type === "couple" && "bg-mdRed border-mdRed pointer-events-none"
+                                        } ${
+                                            selectedSeats.map((selectedSeat) => selectedSeat.id).includes(seat.id)
+                                                ? "border-primary bg-primary"
+                                                : ""
+                                        } ${
+                                            selectedSeats.length === 1 &&
+                                            !handleChooseSeat(selectedSeats[0], {
+                                                id: seat.id,
+                                                seatRow: seat.seatRow,
+                                                type: seat.type
+                                            }) &&
+                                            "opacity-50 pointer-events-none"
+                                        }`}
+                                        onClick={() => {
+                                            if (selectedSeats.length <= 1)
+                                                setSelectedSeats([
+                                                    ...selectedSeats,
+                                                    { id: seat.id, seatRow: seat.seatRow, type: seat.type }
+                                                ]);
+                                            else {
+                                                const arr = [{ id: seat.id, seatRow: seat.seatRow, type: seat.type }];
+                                                setSelectedSeats(arr);
+                                            }
+                                        }}
+                                    >
+                                        <SeatItem
+                                            id={seat.id}
+                                            numberOfColumn={seat.seatColumn}
+                                            numberOfRow={seat.seatRow}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div
+                                        key={seat.id}
+                                        className={`p-2 border border-blue rounded-lg ${
+                                            seat.type === "couple" && "bg-mdRed border-mdRed"
+                                        }`}
+                                    >
+                                        <SeatItem
+                                            id={seat.id}
+                                            numberOfColumn={seat.seatColumn}
+                                            numberOfRow={seat.seatRow}
+                                        />
+                                    </div>
+                                )
+                            )}
                         </ul>
                     )}
                 </div>

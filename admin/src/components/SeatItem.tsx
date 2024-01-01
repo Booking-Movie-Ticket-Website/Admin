@@ -8,12 +8,10 @@ interface Props {
 
 const SeatItem: React.FC<Props> = ({ numberOfColumn, numberOfRow }) => {
     return (
-        <div className="rounded-xl border border-blue p-2">
-            <div className="text-center">
-                <div>
-                    {numberOfRow}
-                    {numberOfColumn}
-                </div>
+        <div className="text-center">
+            <div>
+                {numberOfRow}
+                {numberOfColumn}
             </div>
         </div>
     );

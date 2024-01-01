@@ -9,21 +9,21 @@ import { useAppDispatch } from "~/hook";
 import { startLoading, stopLoading } from "~/actions/loading";
 import { sendMessage } from "~/actions/message";
 import SeatItem from "~/components/SeatItem";
-import { useParams } from "react-router-dom";
-import Tippy from "@tippyjs/react/headless";
 import getNumsOfCol from "~/utils/getNumsOfCol";
+import { toast } from "react-toastify";
 
 const schema = yup.object().shape({
     numberOfRow: yup.string().required("Number of row is required."),
     numberOfColumn: yup.string().required("Number of column is required.")
 });
 
-function Seats() {
+interface Props {
+    id: string;
+}
+
+const Seats: React.FC<Props> = ({ id }) => {
     const [data, setData] = useState<Array<ISeats>>();
     const [numsOfCol, setNumsOfCol] = useState<number>(0);
-    const [deletingMode, setDeletingMode] = useState(false);
-    const [typeVisible, setTypeVisible] = useState(false);
-    const [type, setType] = useState("standard");
     const { Portal, show, hide } = usePortal({
         defaultShow: false
     });
@@ -36,7 +36,6 @@ function Seats() {
     } = useForm<ISeatsValidation>({
         resolver: yupResolver(schema)
     });
-    const { id } = useParams();
 
     const onSubmit: SubmitHandler<ISeatsValidation> = async (formData) => {
         hide();
@@ -49,7 +48,6 @@ function Seats() {
                 .post(
                     "/seats",
                     {
-                        seatType: type,
                         roomId: id,
                         numberOfRow,
                         numberOfColumn
@@ -76,6 +74,28 @@ function Seats() {
         })();
     };
 
+    const handleDelete = async () => {
+        hide();
+        dispatch(startLoading());
+        await axios
+            .delete(`/seats/${id}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                }
+            })
+            .then(() => {
+                dispatch(stopLoading());
+                window.location.reload();
+                toast("Deleted successfully!");
+            })
+            .catch((error) => {
+                console.error(error);
+                toast("Deleted failed!");
+                hide();
+            });
+    };
+
     useEffect(() => {
         (async () => {
             await axios
@@ -91,22 +111,15 @@ function Seats() {
     return (
         data && (
             <>
-                {deletingMode && (
-                    <div className="shadow-xl rounded-xl bg-block mb-6">
-                        <div className="bg-primary h-6 rounded-tr-xl rounded-tl-xl"></div>
-                        <div className="p-6 text-[15px]">Select a seat below to delete.</div>
-                    </div>
-                )}
-                <div className="bg-block p-6 rounded-3xl shadow-xl">
+                <div className="bg-block p-6 border border-blue rounded-3xl">
                     <div className="flex justify-between items-center mb-6">
-                        <div className="text-xl font-medium ">Seats</div>
+                        <div className="text-xl font-medium">Seats</div>
                         <div className="flex gap-3 items-center">
                             <button
                                 onClick={() => {
-                                    setDeletingMode(false);
                                     show();
                                 }}
-                                className="bg-block rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3 w-[112px]"
+                                className="bg-block rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3"
                             >
                                 <i className="mr-[3px]">
                                     <svg
@@ -132,13 +145,11 @@ function Seats() {
                                         ></path>
                                     </svg>
                                 </i>
-                                Create
+                                Create seats
                             </button>
                             <button
-                                onClick={() => setDeletingMode(!deletingMode)}
-                                className={`bg-block rounded-xl border-blue border hover:border-primary ${
-                                    deletingMode ? "border-mdRed bg-mdRed" : ""
-                                } hover:bg-primary flex items-center justify-center p-3`}
+                                onClick={() => handleDelete()}
+                                className={`bg-block rounded-xl border-blue border hover:border-mdRed hover:bg-mdRed flex items-center justify-center p-3`}
                             >
                                 <i className="mr-1">
                                     <svg
@@ -154,7 +165,27 @@ function Seats() {
                                         ></path>
                                     </svg>
                                 </i>
-                                Delete All
+                                Delete all
+                            </button>
+                            <button
+                                onClick={() => handleDelete()}
+                                className={`bg-block rounded-xl border-blue border hover:border-primary hover:bg-primary flex items-center justify-center p-3`}
+                            >
+                                <i className="mr-1">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 6.35 6.35"
+                                        id="up-arrow"
+                                    >
+                                        <path
+                                            d="m 3.1671875,0.5344269 a 0.26460996,0.26460996 0 0 0 -0.179688,0.078125 L 0.60664052,2.9934112 a 0.26460996,0.26460996 0 0 0 0.1875,0.4511719 H 1.8527345 V 5.552005 a 0.26460996,0.26460996 0 0 0 0.263672,0.2636719 h 2.117187 A 0.26460996,0.26460996 0 0 0 4.4992185,5.552005 V 3.4445831 h 1.056641 a 0.26460996,0.26460996 0 0 0 0.1875,-0.4511719 l -2.38086,-2.3808593 a 0.26460996,0.26460996 0 0 0 -0.195312,-0.078125 z m 0.00781,0.6386719 1.744141,1.7421874 h -0.685547 a 0.26460996,0.26460996 0 0 0 -0.263672,0.265625 V 5.28638 h -1.58789 V 3.1809112 a 0.26460996,0.26460996 0 0 0 -0.265625,-0.265625 h -0.683594 z"
+                                            className="fill-white"
+                                        ></path>
+                                    </svg>
+                                </i>
+                                Update to couple
                             </button>
                         </div>
                     </div>
@@ -171,10 +202,8 @@ function Seats() {
                                 <SeatItem
                                     key={seat.id}
                                     id={seat.id}
-                                    seatType={seat.type}
                                     numberOfColumn={seat.seatColumn}
                                     numberOfRow={seat.seatRow}
-                                    deletingMode={deletingMode}
                                 />
                             ))}
                         </ul>
@@ -208,74 +237,6 @@ function Seats() {
                                 </div>
                                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
                                     <div className="text-blue text-[15px]">Seat Information</div>
-                                    <div className="flex gap-2 flex-col">
-                                        <label htmlFor="active" className="flex gap-1 mb-1 items-center">
-                                            Seat type
-                                        </label>
-                                        <Tippy
-                                            interactive
-                                            onClickOutside={() => setTypeVisible(!typeVisible)}
-                                            visible={typeVisible}
-                                            offset={[0, -149]}
-                                            render={(attrs) => (
-                                                <div
-                                                    {...attrs}
-                                                    className={`flex w-[434px] text-white p-2 rounded-bl-lg rounded-br-lg flex-col bg-background outline-1 outline-border outline justify-center ${
-                                                        typeVisible ? "outline-primary" : ""
-                                                    }`}
-                                                >
-                                                    <div
-                                                        onClick={() => {
-                                                            setType("standard");
-                                                            setTypeVisible(false);
-                                                        }}
-                                                        className={`cursor-pointer py-3 px-4 hover:bg-primary text-left rounded-lg ${
-                                                            type === "standard" ? "text-blue pointer-events-none" : ""
-                                                        }`}
-                                                    >
-                                                        Standard
-                                                    </div>
-                                                    <div
-                                                        onClick={() => {
-                                                            setType("couple");
-                                                            setTypeVisible(false);
-                                                        }}
-                                                        className={`cursor-pointer py-3 px-4 hover:bg-primary text-left rounded-lg ${
-                                                            type === "couple" ? "text-blue pointer-events-none" : ""
-                                                        }`}
-                                                    >
-                                                        Couple
-                                                    </div>
-                                                </div>
-                                            )}
-                                        >
-                                            <div
-                                                tabIndex={-1}
-                                                onClick={() => setTypeVisible(!typeVisible)}
-                                                className={`hover:outline-primary py-3 px-4 outline-blue outline-1 outline bg-[rgba(141,124,221,0.1)] cursor-pointer ${
-                                                    typeVisible
-                                                        ? "rounded-tl-lg rounded-tr-lg outline-primary"
-                                                        : "rounded-lg"
-                                                }   flex justify-between items-center`}
-                                            >
-                                                {type === "standard" ? "Standard" : "Couple"}
-                                                <i className={`${typeVisible ? "rotate-180" : ""}`}>
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        width="20"
-                                                        height="20"
-                                                        viewBox="0 0 16 16"
-                                                        id="chevron-down"
-                                                    >
-                                                        <path
-                                                            fill="#fff"
-                                                            d="M4.14645,5.64645 C4.34171,5.45118 4.65829,5.45118 4.85355,5.64645 L7.9999975,8.79289 L11.1464,5.64645 C11.3417,5.45118 11.6583,5.45118 11.8536,5.64645 C12.0488,5.84171 12.0488,6.15829 11.8536,6.35355 L8.35355,9.85355 C8.15829,10.0488 7.84171,10.0488 7.64645,9.85355 L4.14645,6.35355 C3.95118,6.15829 3.95118,5.84171 4.14645,5.64645 Z"
-                                                        ></path>
-                                                    </svg>
-                                                </i>
-                                            </div>
-                                        </Tippy>
-                                    </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="flex gap-2 flex-col">
                                             <label htmlFor="numberOfRow" className="flex gap-1 mb-1 items-center">
@@ -321,6 +282,6 @@ function Seats() {
             </>
         )
     );
-}
+};
 
 export default Seats;

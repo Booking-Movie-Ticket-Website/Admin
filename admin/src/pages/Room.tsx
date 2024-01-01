@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import axios from "~/utils/axios";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -18,9 +17,12 @@ const schema = yup.object().shape({
     capacity: yup.string().required("Capacity is required.")
 });
 
-function Room() {
+interface Props {
+    id: string;
+}
+
+const Room: React.FC<Props> = ({ id }) => {
     const [data, setData] = useState<IRoomData>();
-    const { id } = useParams();
     const dispatch = useAppDispatch();
     const [selectedTheater, setSelectedTheater] = useState<{ id: string; name: string; city: string }>({
         id: "",
@@ -118,64 +120,45 @@ function Room() {
     return (
         data && (
             <>
-                <div className="flex justify-end items-center mb-6">
-                    <div className="flex gap-3 items-center">
-                        <button
-                            onClick={() => {
-                                show();
-                            }}
-                            className={`rounded-xl bg-block border-blue border hover:border-primary 
-                           hover:bg-primary flex items-center justify-center p-3 w-[112px]`}
-                        >
-                            <i className="mr-1">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    width={20}
-                                    height={20}
-                                    id="edit"
-                                >
-                                    <path
-                                        className="fill-white"
-                                        d="M5,18H9.24a1,1,0,0,0,.71-.29l6.92-6.93h0L19.71,8a1,1,0,0,0,0-1.42L15.47,2.29a1,1,0,0,0-1.42,0L11.23,5.12h0L4.29,12.05a1,1,0,0,0-.29.71V17A1,1,0,0,0,5,18ZM14.76,4.41l2.83,2.83L16.17,8.66,13.34,5.83ZM6,13.17l5.93-5.93,2.83,2.83L8.83,16H6ZM21,20H3a1,1,0,0,0,0,2H21a1,1,0,0,0,0-2Z"
-                                    ></path>
-                                </svg>
-                            </i>
-                            Update
-                        </button>
-                    </div>
-                </div>
                 <div className="bg-block p-6 rounded-3xl shadow-xl flex flex-col gap-6">
-                    <div className="rounded-xl border border-blue hover:border-primary hover:bg-background p-4">
-                        <div className="cursor-pointer">
-                            <div className="text-center text-lg font-medium capitalize text-blue">{data.name}</div>
-                            <div className="flex flex-col px-4 gap-2 mt-4">
-                                <div className="">
-                                    <span className="text-blue font-medium">Capacity: </span>
-                                    {data.capacity}
-                                </div>
-                                <div className="capitalize">
-                                    <span className="text-blue font-medium">Type: </span>
+                    <div className="flex justify-between items-center mb-6">
+                        <div className="flex flex-col">
+                            <div className="text-xl font-medium flex gap-2 items-center">
+                                {data.name}
+                                <span className="capitalize px-2 text-[13px] bg-background whitespace-nowrap inline gap-1 items-center rounded-md border border-blue">
                                     {data.type}
-                                </div>
-                                <div className="">
-                                    <span className="text-blue font-medium">Theater: </span>
-                                    {data.theater.name}
-                                </div>
-                                <div className="">
-                                    <span className="text-blue font-medium">City: </span>
-                                    {data.theater.city}
-                                </div>
-                                <div className="">
-                                    <span className="text-blue font-medium">Address: </span>
-                                    {data.theater.address}
-                                </div>
+                                </span>
                             </div>
+                            <div>{data.capacity} seats</div>
+                        </div>
+                        <div className="flex gap-3 items-center">
+                            <button
+                                onClick={() => {
+                                    show();
+                                }}
+                                className={`rounded-xl bg-block border-blue border hover:border-primary 
+                           hover:bg-primary flex items-center justify-center p-3`}
+                            >
+                                <i className="mr-1">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        width={20}
+                                        height={20}
+                                        id="edit"
+                                    >
+                                        <path
+                                            className="fill-white"
+                                            d="M5,18H9.24a1,1,0,0,0,.71-.29l6.92-6.93h0L19.71,8a1,1,0,0,0,0-1.42L15.47,2.29a1,1,0,0,0-1.42,0L11.23,5.12h0L4.29,12.05a1,1,0,0,0-.29.71V17A1,1,0,0,0,5,18ZM14.76,4.41l2.83,2.83L16.17,8.66,13.34,5.83ZM6,13.17l5.93-5.93,2.83,2.83L8.83,16H6ZM21,20H3a1,1,0,0,0,0,2H21a1,1,0,0,0,0-2Z"
+                                        ></path>
+                                    </svg>
+                                </i>
+                                Update room
+                            </button>
                         </div>
                     </div>
+                    <Seats id={data.id} />
                 </div>
-                <div className="mt-16"></div>
-                <Seats />
                 <Portal>
                     <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                         <div className="flex items-center justify-center">
@@ -375,6 +358,6 @@ function Room() {
             </>
         )
     );
-}
+};
 
 export default Room;

@@ -9,6 +9,7 @@ import { sendMessage } from "~/actions/message";
 import { useAppDispatch } from "~/hook";
 import usePortal from "react-cool-portal";
 import IsRequired from "~/icons/IsRequired";
+import Room from "./Room";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),
@@ -89,79 +90,70 @@ function Theater() {
     return (
         data && (
             <>
-                <div className="flex justify-end items-center mb-6">
-                    <div className="flex gap-3 items-center">
-                        <button
-                            onClick={() => {
-                                show();
-                            }}
-                            className={`rounded-xl bg-block border-blue border hover:border-primary 
-                           hover:bg-primary flex items-center justify-center p-3 w-[112px]`}
-                        >
-                            <i className="mr-1">
+                <div className="bg-block p-6 rounded-3xl shadow-xl flex flex-col gap-2 mb-12">
+                    <div className="flex justify-between items-center">
+                        <div className="flex flex-col">
+                            <div className="text-xl font-medium flex gap-2 items-center">Theater</div>
+                            <div className="text-xl text-medium text-primary flex gap-2">
+                                {data.name}
+                                <span className="px-2 text-[13px] text-white bg-background whitespace-nowrap inline gap-1 items-center rounded-md border border-blue">
+                                    {data.rooms.length} rooms
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 items-center">
+                            <button
+                                onClick={() => {
+                                    show();
+                                }}
+                                className={`rounded-xl bg-block border-blue border hover:border-primary 
+                           hover:bg-primary flex items-center justify-center p-3`}
+                            >
+                                <i className="mr-1">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        width={20}
+                                        height={20}
+                                        id="edit"
+                                    >
+                                        <path
+                                            className="fill-white"
+                                            d="M5,18H9.24a1,1,0,0,0,.71-.29l6.92-6.93h0L19.71,8a1,1,0,0,0,0-1.42L15.47,2.29a1,1,0,0,0-1.42,0L11.23,5.12h0L4.29,12.05a1,1,0,0,0-.29.71V17A1,1,0,0,0,5,18ZM14.76,4.41l2.83,2.83L16.17,8.66,13.34,5.83ZM6,13.17l5.93-5.93,2.83,2.83L8.83,16H6ZM21,20H3a1,1,0,0,0,0,2H21a1,1,0,0,0,0-2Z"
+                                        ></path>
+                                    </svg>
+                                </i>
+                                Update theater
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-2 justify-center mt-4">
+                        <div className="flex gap-2 items-center">
+                            <i>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 24 24"
-                                    width={20}
-                                    height={20}
-                                    id="edit"
+                                    width={36}
+                                    height={36}
+                                    id="location"
                                 >
                                     <path
-                                        className="fill-white"
-                                        d="M5,18H9.24a1,1,0,0,0,.71-.29l6.92-6.93h0L19.71,8a1,1,0,0,0,0-1.42L15.47,2.29a1,1,0,0,0-1.42,0L11.23,5.12h0L4.29,12.05a1,1,0,0,0-.29.71V17A1,1,0,0,0,5,18ZM14.76,4.41l2.83,2.83L16.17,8.66,13.34,5.83ZM6,13.17l5.93-5.93,2.83,2.83L8.83,16H6ZM21,20H3a1,1,0,0,0,0,2H21a1,1,0,0,0,0-2Z"
+                                        className="fill-white group-hover:fill-primary"
+                                        d="M12,2a8,8,0,0,0-8,8c0,5.4,7.05,11.5,7.35,11.76a1,1,0,0,0,1.3,0C13,21.5,20,15.4,20,10A8,8,0,0,0,12,2Zm0,17.65c-2.13-2-6-6.31-6-9.65a6,6,0,0,1,12,0C18,13.34,14.13,17.66,12,19.65ZM12,6a4,4,0,1,0,4,4A4,4,0,0,0,12,6Zm0,6a2,2,0,1,1,2-2A2,2,0,0,1,12,12Z"
                                     ></path>
                                 </svg>
                             </i>
-                            Update
-                        </button>
+                            <div>
+                                <div className="">{data.city} City</div>
+                                <div className="">{data.address}</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className="bg-block p-6 rounded-3xl shadow-xl flex flex-col gap-6">
-                    <div className="text-xl font-medium text-primary">{data.name}</div>
-                    <div className="flex gap-6">
-                        <div className="flex w-1/3 flex-col p-4 gap-2 mt-4 rounded-xl border border-blue">
-                            <div className="text-base">
-                                <span className="text-blue font-medium">Theater Information: </span>
-                            </div>
-                            <div className="p-4 flex flex-col gap-2">
-                                <div className="">
-                                    <span className="text-blue font-medium">City: </span>
-                                    {data.city}
-                                </div>
-                                <div className="">
-                                    <span className="text-blue font-medium">Address: </span>
-                                    {data.address}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex w-2/3 flex-col gap-2 mt-4 p-4 rounded-xl border border-blue">
-                            <div className="text-base">
-                                <span className="text-blue font-medium">Rooms: </span>
-                            </div>
-                            <ul className="grid grid-cols-3 gap-6 px-6 py-4">
-                                {data.rooms.length > 0 ? (
-                                    data.rooms.map((room) => (
-                                        <li key={room.id} className="flex flex-col gap-2">
-                                            <div>
-                                                <span className="text-blue font-medium">Name: </span>
-                                                {room.name}
-                                            </div>
-                                            <div>
-                                                <span className="text-blue font-medium">Capacity: </span>
-                                                {room.capacity}
-                                            </div>
-                                            <div>
-                                                <span className="text-blue font-medium">Type: </span>
-                                                {room.type}
-                                            </div>
-                                        </li>
-                                    ))
-                                ) : (
-                                    <span>No room has been created.</span>
-                                )}
-                            </ul>
-                        </div>
-                    </div>
+                <div className="flex flex-col gap-12">
+                    {data.rooms.map((room) => (
+                        <Room key={room.id} id={room.id} />
+                    ))}
                 </div>
                 <Portal>
                     <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">

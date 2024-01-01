@@ -47,8 +47,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<PrivateRoute />}>
                 <Route path="/" element={<Layout />}>
-                    <Route index element={<Dashboard />} />
-                    <Route path="/movies" element={<Movies />} />
+                    {/* <Route index element={<Dashboard />} /> */}
+                    <Route index element={<Movies />} />
                     <Route path="/movies/:id" element={<Movie />} />
                     <Route path="/actors" element={<Actors />} />
                     <Route path="/actors/:id" element={<Actor />} />

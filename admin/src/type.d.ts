@@ -283,5 +283,6 @@ interface IBookings {
         endTime: string;
         movieId: string;
         roomId: string;
+        movie: IMovie;
     };
 }

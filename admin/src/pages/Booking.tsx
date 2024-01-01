@@ -1,69 +1,40 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "~/utils/axios";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { startLoading, stopLoading } from "~/actions/loading";
 import { sendMessage } from "~/actions/message";
 import { useAppDispatch } from "~/hook";
 import usePortal from "react-cool-portal";
 import IsRequired from "~/icons/IsRequired";
-import Tippy from "@tippyjs/react/headless";
 import convertTimeStamp from "~/utils/convertTimeStamp";
-import convertReleaseDate from "~/utils/convertReleaseDate";
-import compareDate from "~/utils/compareDate";
-
-const schema = yup.object().shape({
-    startTime: yup.date().required("Start time is required.").typeError("Start time must be a date.")
-});
+import formatCurrency from "~/utils/formatCurrency";
 
 function Booking() {
-    const [data, setData] = useState<IShows>();
+    const [data, setData] = useState<IBookings>();
     const { id } = useParams();
     const dispatch = useAppDispatch();
-    const { Portal, show, hide } = usePortal({ defaultShow: false });
-
-    const {
-        register,
-        handleSubmit,
-        setValue,
-        formState: { errors }
-    } = useForm<IShowsValidation>({
-        resolver: yupResolver(schema),
-        defaultValues: {
-            startTime: new Date()
-        }
-    });
-
-    const [moviesData, setMoviesData] = useState<Array<IMovieData>>([]);
-    const [movieShow, setMovieShow] = useState<IMovieData>();
-    const [selectedMovie, setSelectedMovie] = useState<{ id: string; name: string; director: string }>({
-        id: "",
-        name: "",
-        director: ""
-    });
+    const [showsData, setShowsData] = useState<Array<IShows>>([]);
     const [theatersData, setTheatersData] = useState<Array<ITheaters>>([]);
-    const [theaterShow, setTheaterShow] = useState<ITheaters>();
-    const [roomsData, setRoomsData] = useState<Array<IRooms>>([]);
-    const [selectedRoom, setSelectedRoom] = useState<{ id: string; name: string; type: string }>({
-        id: "",
-        name: "",
-        type: ""
-    });
-    const [moviesMenuVisible, setMoviesMenuVisible] = useState(false);
-    const [roomsMenuVisible, setRoomsMenuVisible] = useState(false);
+    const [showDetails, setShowDetails] = useState<IShows>();
+    const [moviesData, setMoviesData] = useState<Array<IMovieData>>([]);
+    const [selectedShow, setSelectedShow] = useState<string>("");
+    const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+    const { Portal, show, hide } = usePortal({ defaultShow: false });
+    const { handleSubmit } = useForm();
 
     useEffect(() => {
         (async () => {
             try {
-                const response = await axios.get(`/showings/${id}`, {
-                    headers: { "Content-Type": "application/json" }
+                const response = await axios.get(`/bookings/${id}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
                 });
                 setData(response.data);
-                setSelectedMovie(response.data.movie);
-                setSelectedRoom(response.data.room);
-                setValue("startTime", convertReleaseDate(response.data.startTime) || new Date());
+                setSelectedShow(response.data.showingId);
+                setSelectedSeats(response.data.showingSeats.map((seat: { id: string }) => seat.id));
             } catch (error) {
                 console.error(error);
             }
@@ -71,11 +42,25 @@ function Booking() {
 
         (async () => {
             await axios
-                .get(`/movies?page=1&take=20`, { headers: { "Content-Type": "application/json" } })
-                .then((response) => {
-                    setMoviesData(response.data.data.filter((movie) => !compareDate(movie.releaseDate)));
+                .get("/showings?page=1&take=50&isAvailable=true", { headers: { "Content-Type": "application/json" } })
+                .then((showResponse) => {
+                    setShowsData(showResponse.data.data);
+                    (async () => {
+                        await axios
+                            .get(`/movies?page=1&take=20`, { headers: { "Content-Type": "application/json" } })
+                            .then((movieResponse) => {
+                                setMoviesData(
+                                    movieResponse.data.data.filter((movie: { id: string }) =>
+                                        showResponse.data.data.some(
+                                            (show: { movieId: string }) => show.movieId === movie.id
+                                        )
+                                    )
+                                );
+                            })
+                            .catch((error) => console.error(error));
+                    })();
                 })
-                .catch((error) => console.error(error));
+                .catch((err) => console.error(err));
         })();
 
         (async () => {
@@ -86,39 +71,35 @@ function Booking() {
                 })
                 .catch((err) => console.error(err));
         })();
-
-        (async () => {
-            await axios
-                .get("/rooms?page=1&take=20", { headers: { "Content-Type": "application/json" } })
-                .then((response) => {
-                    setRoomsData(response.data.data);
-                })
-                .catch((err) => console.error(err));
-        })();
-    }, [id, setValue]);
+    }, [id]);
 
     useEffect(() => {
-        if (moviesData.length > 0 && theatersData.length > 0) {
-            setMovieShow(moviesData.find((movie) => movie.id === data?.movieId));
-            setTheaterShow(theatersData.find((theater) => theater.id === data?.room.theaterId));
+        if (selectedShow !== "") {
+            (async () => {
+                await axios
+                    .get(`/showings/${selectedShow}`, { headers: { "Content-Type": "application/json" } })
+                    .then((response) => {
+                        setShowDetails(response.data);
+                        setSelectedSeats([]);
+                    })
+                    .catch((err) => console.error(err));
+            })();
         }
-    }, [moviesData, theatersData, data]);
+    }, [selectedShow]);
 
-    const onSubmit: SubmitHandler<IShowsValidation> = async (formData) => {
+    const onSubmit = async () => {
         hide();
         dispatch(startLoading());
-        const startTime = formData.startTime.toString();
-        const movieId = selectedMovie?.id;
-        const roomId = selectedRoom?.id;
+        const showingId = selectedShow;
+        const seatIds = selectedSeats;
 
         (async () => {
             try {
                 await axios.patch(
-                    `/showings/${id}`,
+                    `/bookings/${id}`,
                     {
-                        ...(data?.startTime !== startTime && { startTime }),
-                        ...(data?.movieId !== movieId && { movieId }),
-                        ...(data?.room.id !== roomId && { roomId })
+                        seatIds,
+                        ...(data?.showingId !== showingId && { showingId })
                     },
                     {
                         headers: {
@@ -129,7 +110,7 @@ function Booking() {
                 );
                 dispatch(stopLoading());
                 dispatch(sendMessage("Updated successfully!"));
-                setTimeout(() => window.location.reload(), 2000);
+                // setTimeout(() => window.location.reload(), 2000);
             } catch (error) {
                 dispatch(stopLoading());
                 dispatch(sendMessage("Updated failed!"));
@@ -138,8 +119,12 @@ function Booking() {
         })();
     };
 
+    console.log(showDetails);
+
     return (
-        data && (
+        data &&
+        moviesData &&
+        moviesData.length > 0 && (
             <>
                 <div className="flex justify-end items-center mb-6">
                     <div className="flex gap-3 items-center">
@@ -169,38 +154,33 @@ function Booking() {
                     </div>
                 </div>
                 <div className="bg-block p-6 rounded-3xl shadow-xl flex flex-col gap-6">
-                    <div className="flex gap-6 justify-center">
-                        <div className="rounded-xl overflow-hidden w-2/3">
+                    <div className="grid grid-cols-2 gap-4 items-center">
+                        <div className="">
                             <img
-                                src={movieShow?.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
+                                src={
+                                    data.showing.movie.moviePosters?.filter((poster) => poster.isThumb === true)[0].link
+                                }
                                 alt="movie poster"
                                 className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
                             />
                         </div>
-                        <div className="flex w-1/3 flex-col">
-                            <div className="text-base text-blue">{movieShow?.name}</div>
-                            <div className="text-[13px]">{movieShow?.director}</div>
-                            <div className="flex gap-2 items-center mt-4">
-                                <div>
-                                    <div className="text-blue font-medium">
-                                        {theaterShow?.name} - {theaterShow?.city}
-                                    </div>
-                                    <div className="">{theaterShow?.address}</div>
-                                    <div>Start time: {convertTimeStamp(data.startTime)}</div>
-                                </div>
+                        <div>
+                            <div className="text-lg text-blue mb-4">{data.showing.movie.name}</div>
+                            <div className="">
+                                <span className="font-medium text-blue">Price: </span>
+                                {formatCurrency(data.totalPrice)} VND
                             </div>
-                            <div className="flex gap-2 items-center mt-4">
-                                <div>
-                                    <div className="text-blue font-medium capitalize">{data.room.name}</div>
-                                    <div className="">
-                                        <span className="text-blue font-medium">Room type: </span>
-                                        {data.room.type}
-                                    </div>
-                                    <div className="">
-                                        <span className="text-blue font-medium">Capacity: </span>
-                                        {data.room.capacity}
-                                    </div>
-                                </div>
+                            <div className="capitalize">
+                                <span className="font-medium text-blue">Status: </span>
+                                {data.status}
+                            </div>
+                            <div className="">
+                                <span className="font-medium text-blue">User: </span>
+                                {data.user.email}
+                            </div>
+                            <div className="capitalize">
+                                <span className="font-medium text-blue">Name: </span>
+                                {data.user.firstName} {data.user.lastName}
                             </div>
                         </div>
                     </div>
@@ -208,7 +188,7 @@ function Booking() {
                 <Portal>
                     <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                         <div className="flex items-center justify-center">
-                            <div className="border border-blue p-8 bg-background relative rounded-xl max-h-[810px] w-[450px] max-w-[662px]  overflow-y-scroll no-scrollbar">
+                            <div className="border border-blue p-8 bg-background relative rounded-xl max-h-[810px] overflow-y-scroll no-scrollbar">
                                 <button
                                     onClick={hide}
                                     className="absolute right-4 top-4 border border-blue rounded-full p-1 hover:border-primary hover:bg-primary"
@@ -229,243 +209,175 @@ function Booking() {
                                     </i>
                                 </button>
                                 <div className="flex justify-center mb-8">
-                                    <div className="text-white font-semibold text-xl">Update show</div>
+                                    <div className="text-white font-semibold text-xl">Update booking</div>
                                 </div>
                                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
-                                    <div className="text-blue text-[15px]">Show Information</div>
+                                    <div className="text-blue text-[15px]">Booking Information</div>
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="movieParticipantIds" className="flex gap-1 mb-1 items-center">
-                                            Movie
+                                            Show
                                             <IsRequired />
                                         </label>
-                                        {selectedMovie &&
-                                            (selectedMovie.name !== "" ? (
-                                                <ul className="">
-                                                    <li
-                                                        key={selectedMovie.id}
-                                                        className={`cursor-pointer py-3 px-4 border border-blue hover:border-primary text-left rounded-lg flex justify-between items-center p-2 `}
-                                                    >
-                                                        <div className="flex items-center">
-                                                            {selectedMovie.name} - {selectedMovie.director}
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setSelectedMovie({
-                                                                    id: "",
-                                                                    director: "",
-                                                                    name: ""
-                                                                });
-                                                            }}
-                                                        >
-                                                            <i>
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    viewBox="0 0 24 24"
-                                                                    width={16}
-                                                                    height={16}
-                                                                    id="close"
-                                                                >
-                                                                    <path
-                                                                        className="fill-white"
-                                                                        d="M13.41,12l6.3-6.29a1,1,0,1,0-1.42-1.42L12,10.59,5.71,4.29A1,1,0,0,0,4.29,5.71L10.59,12l-6.3,6.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l6.29,6.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z"
-                                                                    ></path>
-                                                                </svg>
-                                                            </i>
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            ) : (
-                                                <span className="text-xs">
-                                                    Click on all movies below to add a movie.
-                                                </span>
-                                            ))}
-                                        <div className="text-blue mt-1">All movies</div>
-                                        <div>
-                                            <Tippy
-                                                visible={moviesMenuVisible}
-                                                interactive
-                                                onClickOutside={() => setMoviesMenuVisible(false)}
-                                                offset={[0, -279]}
-                                                render={(attrs) => (
-                                                    <ul
-                                                        className={`border border-primary rounded-lg p-2 max-h-[300px] w-[384px] overflow-y-scroll no-scrollbar bg-background ${
-                                                            moviesMenuVisible
-                                                                ? "border-t-0 rounded-tl-none rounded-tr-none"
-                                                                : ""
-                                                        }`}
-                                                        {...attrs}
-                                                    >
-                                                        {moviesData &&
-                                                            moviesData.map((movie) => (
-                                                                <li
-                                                                    onClick={() => setSelectedMovie(movie)}
-                                                                    key={movie.id}
-                                                                    className={`cursor-pointer capitalize py-2 px-4 text-[13px] hover:bg-primary text-left rounded-lg flex items-center p-2 ${
-                                                                        selectedMovie?.id === movie.id
-                                                                            ? "text-blue pointer-events-none"
-                                                                            : ""
-                                                                    }`}
-                                                                >
-                                                                    {movie.name} - {movie.director}
-                                                                </li>
-                                                            ))}
-                                                    </ul>
-                                                )}
-                                            >
+                                        <span className="text-xs">Click on shows below to add a show.</span>
+                                        <div className="grid grid-cols-2 gap-6 mt-4">
+                                            {showsData.map((show) => (
                                                 <div
-                                                    className={`hover:border-primary py-3 px-4 border-blue border bg-background cursor-pointer w-[384px] mt-1 ${
-                                                        moviesMenuVisible
-                                                            ? "rounded-tl-lg rounded-tr-lg border-primary"
-                                                            : "rounded-lg"
-                                                    }   flex justify-between items-center`}
-                                                    onClick={() => setMoviesMenuVisible(!moviesMenuVisible)}
+                                                    key={show.id}
+                                                    onClick={() => {
+                                                        setSelectedShow(show.id);
+                                                    }}
+                                                    className="rounded-xl cursor-pointer relative border border-blue hover:border-primary hover:bg-background p-4"
                                                 >
-                                                    All movies
-                                                    <i className={`${moviesMenuVisible ? "rotate-180" : ""}`}>
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width="20"
-                                                            height="20"
-                                                            viewBox="0 0 16 16"
-                                                            id="chevron-down"
-                                                        >
-                                                            <path
-                                                                fill="#fff"
-                                                                d="M4.14645,5.64645 C4.34171,5.45118 4.65829,5.45118 4.85355,5.64645 L7.9999975,8.79289 L11.1464,5.64645 C11.3417,5.45118 11.6583,5.45118 11.8536,5.64645 C12.0488,5.84171 12.0488,6.15829 11.8536,6.35355 L8.35355,9.85355 C8.15829,10.0488 7.84171,10.0488 7.64645,9.85355 L4.14645,6.35355 C3.95118,6.15829 3.95118,5.84171 4.14645,5.64645 Z"
-                                                            ></path>
-                                                        </svg>
-                                                    </i>
+                                                    <div className="group overflow-hidden rounded-xl shadow-sm">
+                                                        <div className="flex flex-col gap-2 justify-center">
+                                                            <div className="rounded-xl overflow-hidden w-full h-[180px]">
+                                                                <img
+                                                                    src={
+                                                                        moviesData
+                                                                            .filter(
+                                                                                (movie) => movie.id === show.movieId
+                                                                            )[0]
+                                                                            .moviePosters.filter(
+                                                                                (poster) => poster.isThumb === true
+                                                                            )[0].link
+                                                                    }
+                                                                    alt="movie poster"
+                                                                    className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <div className="text-center">
+                                                                    <div className="text-base text-blue">
+                                                                        {
+                                                                            moviesData.filter(
+                                                                                (movie) => movie.id === show.movieId
+                                                                            )[0].name
+                                                                        }
+                                                                    </div>
+                                                                    <div className="text-[13px]">
+                                                                        {
+                                                                            moviesData.filter(
+                                                                                (movie) => movie.id === show.movieId
+                                                                            )[0].director
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex gap-2 items-center mt-4">
+                                                                    <i>
+                                                                        <svg
+                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                            viewBox="0 0 24 24"
+                                                                            width={36}
+                                                                            height={36}
+                                                                            id="location"
+                                                                        >
+                                                                            <path
+                                                                                className="fill-white group-hover:fill-primary"
+                                                                                d="M12,2a8,8,0,0,0-8,8c0,5.4,7.05,11.5,7.35,11.76a1,1,0,0,0,1.3,0C13,21.5,20,15.4,20,10A8,8,0,0,0,12,2Zm0,17.65c-2.13-2-6-6.31-6-9.65a6,6,0,0,1,12,0C18,13.34,14.13,17.66,12,19.65ZM12,6a4,4,0,1,0,4,4A4,4,0,0,0,12,6Zm0,6a2,2,0,1,1,2-2A2,2,0,0,1,12,12Z"
+                                                                            ></path>
+                                                                        </svg>
+                                                                    </i>
+                                                                    <div>
+                                                                        <div className="text-blue font-medium">
+                                                                            {
+                                                                                theatersData.find(
+                                                                                    (theater) =>
+                                                                                        theater.id ===
+                                                                                        show.room?.theaterId
+                                                                                )?.name
+                                                                            }{" "}
+                                                                            -{" "}
+                                                                            {
+                                                                                theatersData.find(
+                                                                                    (theater) =>
+                                                                                        theater.id ===
+                                                                                        show.room?.theaterId
+                                                                                )?.city
+                                                                            }
+                                                                        </div>
+                                                                        <div className="">
+                                                                            {
+                                                                                theatersData.find(
+                                                                                    (theater) =>
+                                                                                        theater.id ===
+                                                                                        show.room?.theaterId
+                                                                                )?.address
+                                                                            }
+                                                                        </div>
+                                                                        <div>
+                                                                            Start time:{" "}
+                                                                            {convertTimeStamp(show.startTime)}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        className={`absolute top-0 bottom-0 right-0 left-0 ${
+                                                            selectedShow === show.id ? "flex" : "hidden"
+                                                        }`}
+                                                    >
+                                                        <i className="icon flex justify-center items-center w-full h-full">
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                viewBox="0 0 48 48"
+                                                                width="200"
+                                                                height="200"
+                                                            >
+                                                                <path
+                                                                    className="fill-primary"
+                                                                    d="M40.6 12.1L17 35.7 7.4 26.1 4.6 29 17 41.3 43.4 14.9z"
+                                                                />
+                                                            </svg>
+                                                        </i>
+                                                    </div>
                                                 </div>
-                                            </Tippy>
+                                            ))}
                                         </div>
                                     </div>
                                     <div className="flex gap-2 flex-col">
                                         <label htmlFor="movieParticipantIds" className="flex gap-1 mb-1 items-center">
-                                            Room
+                                            Seats
                                             <IsRequired />
                                         </label>
-                                        {selectedRoom &&
-                                            (selectedRoom.name !== "" ? (
-                                                <ul className="">
-                                                    <li
-                                                        key={selectedRoom.id}
-                                                        className={`cursor-pointer py-3 px-4 border border-blue hover:border-primary text-left rounded-lg flex justify-between items-center p-2 `}
-                                                    >
-                                                        <div className="flex items-center">
-                                                            {selectedRoom.name} - {selectedRoom.type}
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setSelectedRoom({
-                                                                    id: "",
-                                                                    type: "",
-                                                                    name: ""
-                                                                });
-                                                            }}
-                                                        >
-                                                            <i>
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    viewBox="0 0 24 24"
-                                                                    width={16}
-                                                                    height={16}
-                                                                    id="close"
-                                                                >
-                                                                    <path
-                                                                        className="fill-white"
-                                                                        d="M13.41,12l6.3-6.29a1,1,0,1,0-1.42-1.42L12,10.59,5.71,4.29A1,1,0,0,0,4.29,5.71L10.59,12l-6.3,6.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l6.29,6.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z"
-                                                                    ></path>
-                                                                </svg>
-                                                            </i>
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            ) : (
-                                                <span className="text-xs">Click on all rooms below to add a room.</span>
-                                            ))}
-                                        <div className="text-blue mt-1">All rooms</div>
-                                        <div>
-                                            <Tippy
-                                                visible={roomsMenuVisible}
-                                                interactive
-                                                onClickOutside={() => setRoomsMenuVisible(false)}
-                                                offset={[0, -315]}
-                                                render={(attrs) => (
-                                                    <ul
-                                                        className={`border border-primary rounded-lg p-2 max-h-[300px] w-[384px] overflow-y-scroll no-scrollbar bg-background ${
-                                                            roomsMenuVisible
-                                                                ? "border-t-0 rounded-tl-none rounded-tr-none"
+                                        <span className="text-xs">Click on seats below to add seats.</span>
+                                        <div className="grid grid-cols-8 gap-4 mt-4">
+                                            {showDetails && showDetails.showingSeats.length > 0 ? (
+                                                showDetails.showingSeats.map((seat) => (
+                                                    <div
+                                                        onClick={() => {
+                                                            setSelectedSeats([...selectedSeats, seat.id]);
+                                                        }}
+                                                        key={seat.id}
+                                                        className={`text-center border cursor-pointer relative border-blue hover:border-primary rounded-lg p-2 ${
+                                                            selectedSeats.includes(seat.id)
+                                                                ? "bg-primary border-primary"
+                                                                : ""
+                                                        } ${
+                                                            seat.isBooked
+                                                                ? "bg-mdRed border-mdRed pointer-events-none"
                                                                 : ""
                                                         }`}
-                                                        {...attrs}
                                                     >
-                                                        {roomsData &&
-                                                            roomsData.map((room) => (
-                                                                <li
-                                                                    onClick={() => setSelectedRoom(room)}
-                                                                    key={room.id}
-                                                                    className={`cursor-pointer capitalize py-2 px-4 text-[13px] hover:bg-primary text-left rounded-lg flex items-center p-2 ${
-                                                                        selectedRoom?.id === room.id
-                                                                            ? "text-blue pointer-events-none"
-                                                                            : ""
-                                                                    }`}
-                                                                >
-                                                                    {room.name} - {room.type}
-                                                                </li>
-                                                            ))}
-                                                    </ul>
-                                                )}
-                                            >
-                                                <div
-                                                    className={`hover:border-primary py-3 px-4 border-blue border bg-background cursor-pointer w-[384px] mt-1 ${
-                                                        roomsMenuVisible
-                                                            ? "rounded-tl-lg rounded-tr-lg border-primary"
-                                                            : "rounded-lg"
-                                                    }   flex justify-between items-center`}
-                                                    onClick={() => setRoomsMenuVisible(!roomsMenuVisible)}
-                                                >
-                                                    All rooms
-                                                    <i className={`${roomsMenuVisible ? "rotate-180" : ""}`}>
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width="20"
-                                                            height="20"
-                                                            viewBox="0 0 16 16"
-                                                            id="chevron-down"
-                                                        >
-                                                            <path
-                                                                fill="#fff"
-                                                                d="M4.14645,5.64645 C4.34171,5.45118 4.65829,5.45118 4.85355,5.64645 L7.9999975,8.79289 L11.1464,5.64645 C11.3417,5.45118 11.6583,5.45118 11.8536,5.64645 C12.0488,5.84171 12.0488,6.15829 11.8536,6.35355 L8.35355,9.85355 C8.15829,10.0488 7.84171,10.0488 7.64645,9.85355 L4.14645,6.35355 C3.95118,6.15829 3.95118,5.84171 4.14645,5.64645 Z"
-                                                            ></path>
-                                                        </svg>
-                                                    </i>
-                                                </div>
-                                            </Tippy>
+                                                        <div className="capitalize">{seat.type}</div>
+                                                        <div>
+                                                            {seat.seatRow}
+                                                            {seat.seatColumn}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <span>No seat.</span>
+                                            )}
                                         </div>
-                                        {/* {<span className="text-deepRed">{errors.capacity?.message}</span>} */}
-                                    </div>
-                                    <div className="flex gap-2 flex-col">
-                                        <label htmlFor="releaseDate" className="flex gap-1 mb-1 items-center">
-                                            Start time
-                                            <IsRequired />
-                                        </label>
-                                        <input
-                                            type="date"
-                                            pattern="\d{4}-\d{2}-\d{2}"
-                                            id="releaseDate"
-                                            {...register("startTime")}
-                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                        />
-                                        {<span className="text-deepRed">{errors.startTime?.message}</span>}
                                     </div>
                                     <div className="outline outline-1 outline-border my-2"></div>
                                     <button
                                         className="py-3 px-8 mt-3 text-base font-semibold rounded-lg border-blue border hover:border-primary hover:bg-primary"
                                         type="submit"
                                     >
-                                        Update show
+                                        Update booking
                                     </button>
                                 </form>
                             </div>

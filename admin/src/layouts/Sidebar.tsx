@@ -9,7 +9,7 @@ function Sidebar() {
             </div>
             <p className="pl-4 pb-3 text-blue">Admin tools</p>
             <div className="flex flex-col pb-[32px] gap-2">
-                <NavLink to="/" className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4">
+                {/* <NavLink to="/" className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4">
                     {({ isActive }) => (
                         <>
                             <i className="flex flex-start mr-2 w-[26px] items-center h-[26px]">
@@ -34,11 +34,8 @@ function Sidebar() {
                             Dashboard
                         </>
                     )}
-                </NavLink>
-                <NavLink
-                    to="/movies"
-                    className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
-                >
+                </NavLink> */}
+                <NavLink to="/" className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4">
                     {({ isActive }) => (
                         <>
                             <i className="flex flex-start mr-2 w-[26px] items-center h-[26px] justify-center">
@@ -147,7 +144,7 @@ function Sidebar() {
                         </>
                     )}
                 </NavLink>
-                <NavLink
+                {/* <NavLink
                     to="/reviews"
                     className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
                 >
@@ -181,7 +178,7 @@ function Sidebar() {
                             Reviews
                         </>
                     )}
-                </NavLink>
+                </NavLink> */}
                 <NavLink
                     to="/theaters"
                     className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
@@ -251,7 +248,7 @@ function Sidebar() {
                         </>
                     )}
                 </NavLink>
-                <NavLink
+                {/* <NavLink
                     to="/seats"
                     className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
                 >
@@ -277,7 +274,7 @@ function Sidebar() {
                             Seats
                         </>
                     )}
-                </NavLink>
+                </NavLink> */}
                 <NavLink
                     to="/shows"
                     className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"

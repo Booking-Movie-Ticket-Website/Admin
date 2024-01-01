@@ -55,23 +55,18 @@ const NewsItem: React.FC<Props> = ({ title, shortDesc, id, newsPicture, deleting
                     }}
                     className="w-full h-[250px] flex gap-6 bg-background border rounded-xl overflow-hidden border-blue hover:border-primary relative"
                 >
-                    <a href={`/news/${id}`} className="w-1/3 absolute top-0 left-0 bottom-0 right-0">
+                    <div className="w-1/3 absolute top-0 left-0 bottom-0 right-0">
                         <img src={newsPicture} alt="news picture" className="w-full h-full" />
-                    </a>
+                    </div>
                     <div className="ml-[calc(33%+16px)] p-6 flex flex-col justify-center">
-                        <a href={`/news/${id}`} className="text-blue text-lg font-medium hover:text-primary">
-                            {title}
-                        </a>
+                        <div className="text-blue text-lg font-medium hover:text-primary">{title}</div>
                         <div className="mt-2">
                             <div>{shortDesc}</div>
                         </div>
                         <div className="mt-6">
-                            <a
-                                href={`/news/${id}`}
-                                className="inline-block mt-4 border border-blue py-3 px-6 text-[15px] font-medium rounded-lg hover:border-primary hover:bg-primary"
-                            >
+                            <div className="inline-block mt-4 border border-blue py-3 px-6 text-[15px] font-medium rounded-lg hover:border-primary hover:bg-primary">
                                 Read more
-                            </a>
+                            </div>
                         </div>
                     </div>
                 </li>

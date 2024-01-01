@@ -199,7 +199,7 @@ function Shows() {
             )}
             <div className="flex flex-col gap-10">
                 <div className="bg-block p-6 rounded-3xl shadow-xl">
-                    <div className="mb-8 text-xl font-medium "> Available Shows</div>
+                    <div className="mb-8 text-xl font-medium ">Available Shows</div>
                     <ul className="grid grid-cols-3 gap-6 w-full">
                         {availableShows?.map((show) => (
                             <ShowItem

@@ -170,7 +170,6 @@ interface IRooms {
 
 interface IRoomsValidation {
     name: string;
-    capacity: string;
     type: string;
 }
 

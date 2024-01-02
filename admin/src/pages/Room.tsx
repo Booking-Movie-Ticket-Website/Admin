@@ -13,8 +13,7 @@ import Seats from "./Seats";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),
-    type: yup.string().required("Type is required."),
-    capacity: yup.string().required("Capacity is required.")
+    type: yup.string().required("Type is required.")
 });
 
 interface Props {
@@ -43,8 +42,7 @@ const Room: React.FC<Props> = ({ id }) => {
         resolver: yupResolver(schema),
         defaultValues: {
             name: "",
-            type: "",
-            capacity: ""
+            type: ""
         }
     });
 
@@ -62,7 +60,6 @@ const Room: React.FC<Props> = ({ id }) => {
                 });
                 setValue("name", response.data.name || "");
                 setValue("type", response.data.type || "");
-                setValue("capacity", response.data.capacity || "");
             } catch (error) {
                 console.error(error);
             }
@@ -82,7 +79,6 @@ const Room: React.FC<Props> = ({ id }) => {
         hide();
         dispatch(startLoading());
         const name = formData.name;
-        const capacity = formData.capacity;
         const theaterId = selectedTheater?.id;
         const type = formData.type;
         if (theaterId === "") setTheaterError(true);
@@ -94,7 +90,6 @@ const Room: React.FC<Props> = ({ id }) => {
                         `/rooms/${id}`,
                         {
                             ...(data?.name !== name && { name }),
-                            ...(data?.capacity !== capacity && { capacity }),
                             ...(data?.type !== type && { type }),
                             ...(data?.theaterId !== theaterId && { theaterId })
                         },
@@ -162,7 +157,7 @@ const Room: React.FC<Props> = ({ id }) => {
                 <Portal>
                     <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                         <div className="flex items-center justify-center">
-                            <div className="border border-blue p-8 bg-background relative rounded-xl max-h-[810px] w-[810px] max-w-[662px]  overflow-y-scroll no-scrollbar">
+                            <div className="border border-blue p-8 bg-background relative rounded-xl max-w-[662px] no-scrollbar">
                                 <button
                                     onClick={hide}
                                     className="absolute right-4 top-4 border border-blue rounded-full p-1 hover:border-primary hover:bg-primary"
@@ -201,94 +196,34 @@ const Room: React.FC<Props> = ({ id }) => {
                                         />
                                         {<span className="text-deepRed">{errors.name?.message}</span>}
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex gap-2 flex-col">
-                                            <label htmlFor="type" className="flex gap-1 mb-1 items-center">
-                                                Type
-                                                <IsRequired />
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="type"
-                                                placeholder="Type . . ."
-                                                {...register("type")}
-                                                className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                            />
-                                            {<span className="text-deepRed">{errors.type?.message}</span>}
-                                        </div>
-                                        <div className="flex gap-2 flex-col">
-                                            <label htmlFor="capacity" className="flex gap-1 mb-1 items-center">
-                                                Capacity
-                                                <IsRequired />
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="capacity"
-                                                placeholder="Capacity . . ."
-                                                {...register("capacity")}
-                                                className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                            />
-                                            {<span className="text-deepRed">{errors.capacity?.message}</span>}
-                                        </div>
+                                    <div className="flex gap-2 flex-col">
+                                        <label htmlFor="type" className="flex gap-1 mb-1 items-center">
+                                            Type
+                                            <IsRequired />
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="type"
+                                            placeholder="Type . . ."
+                                            {...register("type")}
+                                            className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
+                                        />
+                                        {<span className="text-deepRed">{errors.type?.message}</span>}
                                     </div>
-                                    <div className="flex gap-2 flex-col mb-10">
+                                    <div className="flex gap-2 flex-col">
                                         <label htmlFor="movieParticipantIds" className="flex gap-1 mb-1 items-center">
                                             Theater
                                             <IsRequired />
                                         </label>
-                                        {selectedTheater &&
-                                            (selectedTheater.name !== "" ? (
-                                                <ul className="">
-                                                    <li
-                                                        key={selectedTheater.id}
-                                                        className={`cursor-pointer py-3 px-4 border border-blue hover:border-primary text-left rounded-lg flex justify-between items-center p-2 `}
-                                                    >
-                                                        <div className="flex items-center">
-                                                            {selectedTheater.name} - {selectedTheater.city}
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setSelectedTheater({
-                                                                    id: "",
-                                                                    city: "",
-                                                                    name: ""
-                                                                });
-                                                            }}
-                                                        >
-                                                            <i>
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    viewBox="0 0 24 24"
-                                                                    width={16}
-                                                                    height={16}
-                                                                    id="close"
-                                                                >
-                                                                    <path
-                                                                        className="fill-white"
-                                                                        d="M13.41,12l6.3-6.29a1,1,0,1,0-1.42-1.42L12,10.59,5.71,4.29A1,1,0,0,0,4.29,5.71L10.59,12l-6.3,6.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l6.29,6.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z"
-                                                                    ></path>
-                                                                </svg>
-                                                            </i>
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            ) : (
-                                                <span className="text-xs">
-                                                    Click on all theaters below to add a theater.
-                                                </span>
-                                            ))}
-                                        <div className="text-blue mt-1">All theaters</div>
                                         <div>
                                             <Tippy
                                                 visible={theatersMenuVisible}
                                                 interactive
                                                 onClickOutside={() => setTheatersMenuVisible(false)}
-                                                offset={[0, -207]}
+                                                offset={[0, -243]}
                                                 render={(attrs) => (
                                                     <ul
-                                                        className={`border border-primary rounded-lg p-2 max-h-[300px] w-[320px] overflow-y-scroll no-scrollbar bg-background ${
+                                                        className={`border border-primary w-[400px] rounded-lg p-2 max-h-[300px] overflow-y-scroll no-scrollbar bg-background ${
                                                             theatersMenuVisible
                                                                 ? "border-t-0 rounded-tl-none rounded-tr-none"
                                                                 : ""
@@ -316,14 +251,20 @@ const Room: React.FC<Props> = ({ id }) => {
                                                 )}
                                             >
                                                 <div
-                                                    className={`hover:border-primary py-3 px-4 border-blue border bg-background cursor-pointer w-[320px] mt-1 ${
+                                                    className={`hover:border-primary py-3 px-4 border-blue border w-[400px] bg-background cursor-pointer mt-1 ${
                                                         theatersMenuVisible
                                                             ? "rounded-tl-lg rounded-tr-lg border-primary"
                                                             : "rounded-lg"
                                                     }   flex justify-between items-center`}
                                                     onClick={() => setTheatersMenuVisible(!theatersMenuVisible)}
                                                 >
-                                                    All theaters
+                                                    {theatersData
+                                                        ?.map((theater) => theater.id)
+                                                        .includes(selectedTheater.id) && (
+                                                        <span className="mr-2">
+                                                            {selectedTheater.name} - {selectedTheater.city}
+                                                        </span>
+                                                    )}
                                                     <i className={`${theatersMenuVisible ? "rotate-180" : ""}`}>
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
@@ -341,7 +282,6 @@ const Room: React.FC<Props> = ({ id }) => {
                                                 </div>
                                             </Tippy>
                                         </div>
-                                        {<span className="text-deepRed">{errors.capacity?.message}</span>}
                                     </div>
                                     <div className="outline outline-1 outline-border my-2"></div>
                                     <button

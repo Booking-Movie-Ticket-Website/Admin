@@ -169,8 +169,10 @@ function Movie() {
                     setValue("releaseDate", response.data.releaseDate || new Date());
                     setValue("nation", response.data.nation || "");
                     setValue("director", response.data.director || "");
-                    setDeletingReview(Array(response.data.reviews.length - 1).fill(false));
-                    setUpdatingReview(Array(response.data.reviews.length - 1).fill(false));
+                    if (response.data.reviews.length > 0) {
+                        setDeletingReview(Array(response.data.reviews.length - 1).fill(false));
+                        setUpdatingReview(Array(response.data.reviews.length - 1).fill(false));
+                    }
                 })
                 .catch((error) => console.error(error));
         })();

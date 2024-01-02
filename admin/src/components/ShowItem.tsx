@@ -27,7 +27,7 @@ const ShowItem: React.FC<Props> = ({ id, movie, startTime, theater, deletingMode
         hide();
         dispatch(startLoading());
         await axios
-            .delete(`/rooms/${selectedId}`, {
+            .delete(`/showings/${selectedId}`, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`

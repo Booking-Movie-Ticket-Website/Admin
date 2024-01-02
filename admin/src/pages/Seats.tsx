@@ -170,6 +170,8 @@ const Seats: React.FC<Props> = ({ id }) => {
         return false;
     };
 
+    console.log(data);
+
     return (
         data && (
             <>
@@ -210,26 +212,6 @@ const Seats: React.FC<Props> = ({ id }) => {
                                 Create seats
                             </button>
                             <button
-                                onClick={() => handleDelete()}
-                                className={`bg-block rounded-xl border-blue border hover:border-mdRed hover:bg-mdRed flex items-center justify-center p-3`}
-                            >
-                                <i className="mr-1">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 32 32"
-                                        width={20}
-                                        height={20}
-                                        id="delete"
-                                    >
-                                        <path
-                                            className="fill-white"
-                                            d="M24.2,12.193,23.8,24.3a3.988,3.988,0,0,1-4,3.857H12.2a3.988,3.988,0,0,1-4-3.853L7.8,12.193a1,1,0,0,1,2-.066l.4,12.11a2,2,0,0,0,2,1.923h7.6a2,2,0,0,0,2-1.927l.4-12.106a1,1,0,0,1,2,.066Zm1.323-4.029a1,1,0,0,1-1,1H7.478a1,1,0,0,1,0-2h3.1a1.276,1.276,0,0,0,1.273-1.148,2.991,2.991,0,0,1,2.984-2.694h2.33a2.991,2.991,0,0,1,2.984,2.694,1.276,1.276,0,0,0,1.273,1.148h3.1A1,1,0,0,1,25.522,8.164Zm-11.936-1h4.828a3.3,3.3,0,0,1-.255-.944,1,1,0,0,0-.994-.9h-2.33a1,1,0,0,0-.994.9A3.3,3.3,0,0,1,13.586,7.164Zm1.007,15.151V13.8a1,1,0,0,0-2,0v8.519a1,1,0,0,0,2,0Zm4.814,0V13.8a1,1,0,0,0-2,0v8.519a1,1,0,0,0,2,0Z"
-                                        ></path>
-                                    </svg>
-                                </i>
-                                Delete all
-                            </button>
-                            <button
                                 onClick={() => {
                                     setUpdating(!updating);
                                     setSelectedSeats([]);
@@ -253,6 +235,26 @@ const Seats: React.FC<Props> = ({ id }) => {
                                     </svg>
                                 </i>
                                 Update to couple
+                            </button>
+                            <button
+                                onClick={() => handleDelete()}
+                                className={`bg-block rounded-xl border-blue border hover:border-mdRed hover:bg-mdRed flex items-center justify-center p-3`}
+                            >
+                                <i className="mr-1">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 32 32"
+                                        width={20}
+                                        height={20}
+                                        id="delete"
+                                    >
+                                        <path
+                                            className="fill-white"
+                                            d="M24.2,12.193,23.8,24.3a3.988,3.988,0,0,1-4,3.857H12.2a3.988,3.988,0,0,1-4-3.853L7.8,12.193a1,1,0,0,1,2-.066l.4,12.11a2,2,0,0,0,2,1.923h7.6a2,2,0,0,0,2-1.927l.4-12.106a1,1,0,0,1,2,.066Zm1.323-4.029a1,1,0,0,1-1,1H7.478a1,1,0,0,1,0-2h3.1a1.276,1.276,0,0,0,1.273-1.148,2.991,2.991,0,0,1,2.984-2.694h2.33a2.991,2.991,0,0,1,2.984,2.694,1.276,1.276,0,0,0,1.273,1.148h3.1A1,1,0,0,1,25.522,8.164Zm-11.936-1h4.828a3.3,3.3,0,0,1-.255-.944,1,1,0,0,0-.994-.9h-2.33a1,1,0,0,0-.994.9A3.3,3.3,0,0,1,13.586,7.164Zm1.007,15.151V13.8a1,1,0,0,0-2,0v8.519a1,1,0,0,0,2,0Zm4.814,0V13.8a1,1,0,0,0-2,0v8.519a1,1,0,0,0,2,0Z"
+                                        ></path>
+                                    </svg>
+                                </i>
+                                Delete all
                             </button>
                         </div>
                     </div>
@@ -292,11 +294,11 @@ const Seats: React.FC<Props> = ({ id }) => {
                             className="grid gap-6 w-full"
                             style={{ gridTemplateColumns: `repeat(${numsOfCol}, minmax(0, 1fr))` }}
                         >
-                            {data.map((seat) =>
+                            {data.map((seat, index) =>
                                 updating ? (
                                     <div
                                         key={seat.id}
-                                        className={`cursor-pointer rounded-lg p-2 border border-blue  hover:bg-primary hover:border-primary ${
+                                        className={`cursor-pointer relative rounded-lg p-2 border border-blue  hover:bg-primary hover:border-primary ${
                                             seat.type === "couple" && "bg-mdRed border-mdRed pointer-events-none"
                                         } ${
                                             selectedSeats.map((selectedSeat) => selectedSeat.id).includes(seat.id)
@@ -328,11 +330,14 @@ const Seats: React.FC<Props> = ({ id }) => {
                                             numberOfColumn={seat.seatColumn}
                                             numberOfRow={seat.seatRow}
                                         />
+                                        {data[index + 1]?.pairWith === seat.id && (
+                                            <li className="absolute top-[-5px] right-[-19px] text-4xl">-</li>
+                                        )}
                                     </div>
                                 ) : (
                                     <div
                                         key={seat.id}
-                                        className={`p-2 border border-blue rounded-lg ${
+                                        className={`p-2 border border-blue relative rounded-lg ${
                                             seat.type === "couple" && "bg-mdRed border-mdRed"
                                         }`}
                                     >
@@ -341,6 +346,9 @@ const Seats: React.FC<Props> = ({ id }) => {
                                             numberOfColumn={seat.seatColumn}
                                             numberOfRow={seat.seatRow}
                                         />
+                                        {data[index + 1]?.pairWith === seat.id && (
+                                            <li className="absolute top-[-5px] right-[-19px] text-4xl">-</li>
+                                        )}
                                     </div>
                                 )
                             )}

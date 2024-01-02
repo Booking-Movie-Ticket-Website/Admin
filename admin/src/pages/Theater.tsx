@@ -10,6 +10,8 @@ import { useAppDispatch } from "~/hook";
 import usePortal from "react-cool-portal";
 import IsRequired from "~/icons/IsRequired";
 import Room from "./Room";
+import RoomCreating from "./RoomCreating";
+import RoomDeleting from "./RoomDeleting";
 
 const schema = yup.object().shape({
     name: yup.string().required("Name is required."),
@@ -87,6 +89,8 @@ function Theater() {
         })();
     };
 
+    console.log(data);
+
     return (
         data && (
             <>
@@ -125,6 +129,8 @@ function Theater() {
                                 </i>
                                 Update theater
                             </button>
+                            <RoomCreating id={data.id} />
+                            <RoomDeleting rooms={data.rooms} />
                         </div>
                     </div>
                     <div className="flex flex-col gap-2 justify-center mt-4">

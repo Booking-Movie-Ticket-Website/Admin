@@ -4,6 +4,7 @@ import MovieItem from "~/components/MovieItem";
 import React from "react";
 import SkeletonItem from "./SkeletonItem";
 import ToolTip from "@tippyjs/react";
+import { useAppSelector } from "~/hook";
 
 interface Props {
     type: string;
@@ -14,6 +15,7 @@ interface Props {
 const MoviesList: React.FC<Props> = ({ type, deletingMode, reloadFlag }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const { query } = useAppSelector((state) => state.searching!);
 
     useEffect(() => {
         setLoading(true);
@@ -35,16 +37,18 @@ const MoviesList: React.FC<Props> = ({ type, deletingMode, reloadFlag }) => {
                     {loading && <SkeletonItem />}
                     {!loading &&
                         (data.length > 0 ? (
-                            data.map((movie: Movie) => (
-                                <MovieItem
-                                    id={movie.id}
-                                    key={movie.id}
-                                    name={movie.name}
-                                    director={movie.director}
-                                    img={movie.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
-                                    deletingMode={deletingMode}
-                                />
-                            ))
+                            data
+                                .filter((movie) => movie.name.toLowerCase().includes(query.toLowerCase()))
+                                .map((movie: Movie) => (
+                                    <MovieItem
+                                        id={movie.id}
+                                        key={movie.id}
+                                        name={movie.name}
+                                        director={movie.director}
+                                        img={movie.moviePosters.filter((poster) => poster.isThumb === true)[0].link}
+                                        deletingMode={deletingMode}
+                                    />
+                                ))
                         ) : (
                             <li className="w-[calc((100%-96px)/5)] shadow-sm border border-blue aspect-square rounded-xl flex items-center justify-center group hover:border-primary">
                                 <ToolTip content="Create a new movie">

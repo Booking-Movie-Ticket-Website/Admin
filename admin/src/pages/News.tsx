@@ -6,7 +6,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import IsRequired from "~/icons/IsRequired";
 import { convertToBase64 } from "~/utils/convertToBase64";
-import { useAppDispatch } from "~/hook";
+import { useAppDispatch, useAppSelector } from "~/hook";
 import { startLoading, stopLoading } from "~/actions/loading";
 import { sendMessage } from "~/actions/message";
 import NewsItem from "~/components/NewsItem";
@@ -25,6 +25,7 @@ function News() {
         defaultShow: false
     });
     const dispatch = useAppDispatch();
+    const { query } = useAppSelector((state) => state.searching!);
     const {
         control,
         register,
@@ -176,16 +177,18 @@ function News() {
             )}
             <div className="bg-block p-6 rounded-3xl shadow-xl">
                 <ul className="flex flex-col gap-8 w-full">
-                    {data?.map((news) => (
-                        <NewsItem
-                            key={news.id}
-                            id={news.id}
-                            shortDesc={news.shortDesc}
-                            title={news.title}
-                            newsPicture={news.newsPictures[news.newsPictures.length - 1].link}
-                            deletingMode={deletingMode}
-                        />
-                    ))}
+                    {data
+                        ?.filter((news) => news.title.toLowerCase().includes(query.toLowerCase()))
+                        .map((news) => (
+                            <NewsItem
+                                key={news.id}
+                                id={news.id}
+                                shortDesc={news.shortDesc}
+                                title={news.title}
+                                newsPicture={news.newsPictures[news.newsPictures.length - 1].link}
+                                deletingMode={deletingMode}
+                            />
+                        ))}
                 </ul>
             </div>
             <Portal>

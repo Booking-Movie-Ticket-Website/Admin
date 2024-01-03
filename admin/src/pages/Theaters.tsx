@@ -5,7 +5,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import IsRequired from "~/icons/IsRequired";
-import { useAppDispatch } from "~/hook";
+import { useAppDispatch, useAppSelector } from "~/hook";
 import { startLoading, stopLoading } from "~/actions/loading";
 import { sendMessage } from "~/actions/message";
 import TheaterItem from "~/components/TheaterItem";
@@ -30,6 +30,7 @@ function Theaters() {
     } = useForm<ITheatersValidation>({
         resolver: yupResolver(schema)
     });
+    const { query } = useAppSelector((state) => state.searching!);
 
     const onSubmit: SubmitHandler<ITheatersValidation> = async (formData) => {
         hide();
@@ -149,16 +150,18 @@ function Theaters() {
             )}
             <div className="bg-block p-6 rounded-3xl shadow-xl">
                 <ul className="grid grid-cols-3 gap-8 w-full">
-                    {data?.map((theater) => (
-                        <TheaterItem
-                            key={theater.id}
-                            id={theater.id}
-                            name={theater.name}
-                            city={theater.city}
-                            address={theater.address}
-                            deletingMode={deletingMode}
-                        />
-                    ))}
+                    {data
+                        ?.filter((theater) => theater.name.toLowerCase().includes(query.toLowerCase()))
+                        .map((theater) => (
+                            <TheaterItem
+                                key={theater.id}
+                                id={theater.id}
+                                name={theater.name}
+                                city={theater.city}
+                                address={theater.address}
+                                deletingMode={deletingMode}
+                            />
+                        ))}
                 </ul>
             </div>
             <Portal>

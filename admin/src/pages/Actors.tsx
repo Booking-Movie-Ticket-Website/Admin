@@ -13,6 +13,7 @@ import Tippy from "@tippyjs/react/headless";
 import convertReleaseDate from "~/utils/convertReleaseDate";
 import SkeletonActors from "~/components/SkeletonActors";
 import ActorItem from "~/components/ActorItem";
+import { useAppSelector } from "~/hook";
 
 const schema = yup.object().shape({
     fullName: yup.string().required("Full name is required."),
@@ -32,6 +33,7 @@ function Actors() {
     const [selectedFile, setSelectedFile] = useState<File>();
     const [gender, setGender] = useState("male");
     const [genderVisible, setGenderVisible] = useState(false);
+    const { query } = useAppSelector((state) => state.searching!);
 
     const {
         register,
@@ -174,15 +176,17 @@ function Actors() {
                 <ul className="grid grid-cols-4 gap-8 w-full">
                     {loading && <SkeletonActors />}
                     {!loading &&
-                        data?.map((item) => (
-                            <ActorItem
-                                key={item.id}
-                                id={item.id}
-                                fullName={item.fullName}
-                                profilePicture={item.profilePicture}
-                                deletingMode={deletingMode}
-                            />
-                        ))}
+                        data
+                            ?.filter((actor) => actor.fullName.toLowerCase().includes(query.toLowerCase()))
+                            .map((item) => (
+                                <ActorItem
+                                    key={item.id}
+                                    id={item.id}
+                                    fullName={item.fullName}
+                                    profilePicture={item.profilePicture}
+                                    deletingMode={deletingMode}
+                                />
+                            ))}
                 </ul>
             </div>
             <Portal>

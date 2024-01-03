@@ -10,6 +10,7 @@ import { startLoading, stopLoading } from "~/actions/loading";
 import { sendMessage } from "~/actions/message";
 import ShowItem from "~/components/ShowItem";
 import Tippy from "@tippyjs/react/headless";
+import ToolTip from "@tippyjs/react";
 import convertReleaseDate from "~/utils/convertReleaseDate";
 
 const schema = yup.object().shape({
@@ -17,8 +18,8 @@ const schema = yup.object().shape({
 });
 
 function Shows() {
-    const [availableShows, setAvailableShows] = useState<Array<IShows>>();
-    const [unavailableShows, setUnavailableShows] = useState<Array<IShows>>();
+    const [data, setData] = useState<Array<IShows>>();
+    const [isAvailable, setAvailable] = useState(true);
     const [deletingMode, setDeletingMode] = useState(false);
     const [moviesData, setMoviesData] = useState<Array<IMovieData>>([]);
     const [selectedMovie, setSelectedMovie] = useState<{ id: string; name: string; director: string }>({
@@ -34,7 +35,12 @@ function Shows() {
         type: ""
     });
     const [moviesMenuVisible, setMoviesMenuVisible] = useState(false);
+    const [categoriesMenuVisible, setCategoriesMenuVisible] = useState(false);
     const [roomsMenuVisible, setRoomsMenuVisible] = useState(false);
+    const [movieFilteringVisible, setMovieFilteringVisible] = useState(false);
+    const [movieFiltering, setMovieFiltering] = useState<{ id: string; name: string }>({ id: "", name: "" });
+    const [theaterFilteringVisible, setTheaterFilteringVisible] = useState(false);
+    const [theaterFiltering, setTheaterFiltering] = useState<{ id: string; name: string }>({ id: "", name: "" });
     const { Portal, show, hide } = usePortal({
         defaultShow: false
     });
@@ -51,8 +57,8 @@ function Shows() {
     const onSubmit: SubmitHandler<IShowsValidation> = async (formData) => {
         hide();
         dispatch(startLoading());
-        const selectedTime = new Date(`${convertReleaseDate(formData.startTime)}T${time}:00+07:00`);
-        selectedTime.setUTCHours(selectedTime.getUTCHours() - 7);
+        const localDateTime = `${convertReleaseDate(formData.startTime)}T${time}:00.000Z`;
+
         const movieId = selectedMovie?.id;
         const roomId = selectedRoom?.id;
 
@@ -61,7 +67,7 @@ function Shows() {
                 .post(
                     "/showings",
                     {
-                        startTime: selectedTime,
+                        startTime: localDateTime,
                         movieId,
                         roomId
                     },
@@ -90,18 +96,16 @@ function Shows() {
     useEffect(() => {
         (async () => {
             await axios
-                .get("/showings?page=1&take=50&isAvailable=true", { headers: { "Content-Type": "application/json" } })
+                .get(
+                    `/showings?page=1&take=50${movieFiltering.id !== "" ? `&movieId=${movieFiltering.id}` : ""}${
+                        theaterFiltering.id !== "" ? `&theaterId=${theaterFiltering.id}` : ""
+                    }&isAvailable=${isAvailable}`,
+                    {
+                        headers: { "Content-Type": "application/json" }
+                    }
+                )
                 .then((response) => {
-                    setAvailableShows(response.data.data);
-                })
-                .catch((err) => console.error(err));
-        })();
-
-        (async () => {
-            await axios
-                .get("/showings?page=1&take=50&isAvailable=false", { headers: { "Content-Type": "application/json" } })
-                .then((response) => {
-                    setUnavailableShows(response.data.data);
+                    setData(response.data.data);
                 })
                 .catch((err) => console.error(err));
         })();
@@ -132,11 +136,221 @@ function Shows() {
                 })
                 .catch((err) => console.error(err));
         })();
-    }, []);
+    }, [isAvailable, movieFiltering.id, theaterFiltering.id]);
 
     return (
         <>
-            <div className="flex justify-end items-center mb-6">
+            <div className="flex justify-between items-center mb-6">
+                <div className="flex gap-6 flex-col">
+                    <div>
+                        <Tippy
+                            visible={categoriesMenuVisible}
+                            interactive
+                            onClickOutside={() => setCategoriesMenuVisible(false)}
+                            offset={[0, 0]}
+                            render={(attrs) => (
+                                <div
+                                    {...attrs}
+                                    tabIndex={-1}
+                                    className={`flex text-white p-2 rounded-bl-xl rounded-br-xl flex-col bg-background border-border border justify-center w-[200px] ${
+                                        categoriesMenuVisible ? "border-primary border-t-0 bg-block" : ""
+                                    }`}
+                                >
+                                    <button
+                                        onClick={() => {
+                                            setAvailable(true);
+                                            setCategoriesMenuVisible(false);
+                                        }}
+                                        className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                            isAvailable && "text-blue pointer-events-none"
+                                        }`}
+                                    >
+                                        Available shows
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setAvailable(false);
+                                            setCategoriesMenuVisible(false);
+                                        }}
+                                        className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                            !isAvailable && "BANNER" ? "text-blue pointer-events-none" : ""
+                                        }`}
+                                    >
+                                        Unavailable shows
+                                    </button>
+                                </div>
+                            )}
+                        >
+                            <button
+                                onClick={() => setCategoriesMenuVisible(!categoriesMenuVisible)}
+                                className={`hover:border-primary bg-block py-3 px-5 border-blue border ${
+                                    categoriesMenuVisible ? "rounded-tl-xl rounded-tr-xl border-primary" : "rounded-xl"
+                                }   flex justify-between items-center w-[200px]`}
+                            >
+                                <span className="">{isAvailable ? "Available" : "Unavailable"} shows</span>
+                                <i className={`${categoriesMenuVisible ? "rotate-180" : ""}`}>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 16 16"
+                                        id="chevron-down"
+                                    >
+                                        <path
+                                            fill="#fff"
+                                            d="M4.14645,5.64645 C4.34171,5.45118 4.65829,5.45118 4.85355,5.64645 L7.9999975,8.79289 L11.1464,5.64645 C11.3417,5.45118 11.6583,5.45118 11.8536,5.64645 C12.0488,5.84171 12.0488,6.15829 11.8536,6.35355 L8.35355,9.85355 C8.15829,10.0488 7.84171,10.0488 7.64645,9.85355 L4.14645,6.35355 C3.95118,6.15829 3.95118,5.84171 4.14645,5.64645 Z"
+                                        ></path>
+                                    </svg>
+                                </i>
+                            </button>
+                        </Tippy>
+                    </div>
+
+                    <div>
+                        <Tippy
+                            visible={movieFilteringVisible}
+                            interactive
+                            onClickOutside={() => setMovieFilteringVisible(false)}
+                            offset={[0, 0]}
+                            render={(attrs) => (
+                                <div
+                                    {...attrs}
+                                    tabIndex={-1}
+                                    className={`flex text-white p-2 rounded-bl-xl rounded-br-xl flex-col bg-background border-border border justify-center w-[300px] ${
+                                        movieFilteringVisible ? "border-primary border-t-0 bg-block" : ""
+                                    }`}
+                                >
+                                    <button
+                                        onClick={() => {
+                                            setMovieFiltering({ id: "", name: "" });
+                                            setMovieFilteringVisible(false);
+                                        }}
+                                        className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                            movieFiltering.id === "" && "text-blue pointer-events-none"
+                                        }`}
+                                    >
+                                        All movies
+                                    </button>
+                                    {moviesData.map((movie) => (
+                                        <button
+                                            key={movie.id}
+                                            onClick={() => {
+                                                setMovieFiltering({ id: movie.id, name: movie.name });
+                                                setMovieFilteringVisible(false);
+                                            }}
+                                            className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                                movieFiltering.id === movie.id ? "text-blue pointer-events-none" : ""
+                                            }`}
+                                        >
+                                            {movie.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        >
+                            <button
+                                onClick={() => setMovieFilteringVisible(!movieFilteringVisible)}
+                                className={`hover:border-primary bg-block py-3 px-5 border-blue border ${
+                                    movieFilteringVisible ? "rounded-tl-xl rounded-tr-xl border-primary" : "rounded-xl"
+                                }   flex justify-between items-center w-[300px]`}
+                            >
+                                {movieFiltering.id !== "" ? (
+                                    <span className="">{movieFiltering.name}</span>
+                                ) : (
+                                    <span className="">All movies</span>
+                                )}
+                                <i className={`${movieFilteringVisible ? "rotate-180" : ""}`}>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 16 16"
+                                        id="chevron-down"
+                                    >
+                                        <path
+                                            fill="#fff"
+                                            d="M4.14645,5.64645 C4.34171,5.45118 4.65829,5.45118 4.85355,5.64645 L7.9999975,8.79289 L11.1464,5.64645 C11.3417,5.45118 11.6583,5.45118 11.8536,5.64645 C12.0488,5.84171 12.0488,6.15829 11.8536,6.35355 L8.35355,9.85355 C8.15829,10.0488 7.84171,10.0488 7.64645,9.85355 L4.14645,6.35355 C3.95118,6.15829 3.95118,5.84171 4.14645,5.64645 Z"
+                                        ></path>
+                                    </svg>
+                                </i>
+                            </button>
+                        </Tippy>
+                    </div>
+                    <div>
+                        <Tippy
+                            visible={theaterFilteringVisible}
+                            interactive
+                            onClickOutside={() => setTheaterFilteringVisible(false)}
+                            offset={[0, 0]}
+                            render={(attrs) => (
+                                <div
+                                    {...attrs}
+                                    tabIndex={-1}
+                                    className={`flex text-white p-2 rounded-bl-xl rounded-br-xl flex-col bg-background border-border border justify-center w-[300px] ${
+                                        theaterFilteringVisible ? "border-primary border-t-0 bg-block" : ""
+                                    }`}
+                                >
+                                    <button
+                                        onClick={() => {
+                                            setTheaterFiltering({ id: "", name: "" });
+                                            setTheaterFilteringVisible(false);
+                                        }}
+                                        className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                            theaterFiltering.id === "" && "text-blue pointer-events-none"
+                                        }`}
+                                    >
+                                        All theaters
+                                    </button>
+                                    {theatersData.map((theater) => (
+                                        <button
+                                            key={theater.id}
+                                            onClick={() => {
+                                                setTheaterFiltering({ id: theater.id, name: theater.name });
+                                                setTheaterFilteringVisible(false);
+                                            }}
+                                            className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                                theaterFiltering.id === theater.id
+                                                    ? "text-blue pointer-events-none"
+                                                    : ""
+                                            }`}
+                                        >
+                                            {theater.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        >
+                            <button
+                                onClick={() => setTheaterFilteringVisible(!theaterFilteringVisible)}
+                                className={`hover:border-primary bg-block py-3 px-5 border-blue border ${
+                                    theaterFilteringVisible
+                                        ? "rounded-tl-xl rounded-tr-xl border-primary"
+                                        : "rounded-xl"
+                                }   flex justify-between items-center w-[300px]`}
+                            >
+                                {theaterFiltering.id !== "" ? (
+                                    <span className="">{theaterFiltering.name}</span>
+                                ) : (
+                                    <span className="">All theaters</span>
+                                )}
+                                <i className={`${theaterFilteringVisible ? "rotate-180" : ""}`}>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 16 16"
+                                        id="chevron-down"
+                                    >
+                                        <path
+                                            fill="#fff"
+                                            d="M4.14645,5.64645 C4.34171,5.45118 4.65829,5.45118 4.85355,5.64645 L7.9999975,8.79289 L11.1464,5.64645 C11.3417,5.45118 11.6583,5.45118 11.8536,5.64645 C12.0488,5.84171 12.0488,6.15829 11.8536,6.35355 L8.35355,9.85355 C8.15829,10.0488 7.84171,10.0488 7.64645,9.85355 L4.14645,6.35355 C3.95118,6.15829 3.95118,5.84171 4.14645,5.64645 Z"
+                                        ></path>
+                                    </svg>
+                                </i>
+                            </button>
+                        </Tippy>
+                    </div>
+                </div>
                 <div className="flex gap-3 items-center">
                     <button
                         onClick={() => {
@@ -203,33 +417,55 @@ function Shows() {
             )}
             <div className="flex flex-col gap-10">
                 <div className="bg-block p-6 rounded-3xl shadow-xl">
-                    <div className="mb-8 text-xl font-medium ">Available Shows</div>
                     <ul className="grid grid-cols-3 gap-6 w-full">
-                        {availableShows?.map((show) => (
-                            <ShowItem
-                                key={show.id}
-                                id={show.id}
-                                movie={moviesData?.filter((movie) => movie.id === show.movieId)[0]}
-                                theater={theatersData?.filter((theater) => theater.id === show.room.theaterId)[0]}
-                                startTime={show.startTime}
-                                deletingMode={deletingMode}
-                            />
-                        ))}
-                    </ul>
-                </div>
-                <div className="bg-block p-6 rounded-3xl shadow-xl">
-                    <div className="mb-8 text-xl font-medium ">Unavailable Shows</div>
-                    <ul className="grid grid-cols-3 gap-6 w-full">
-                        {unavailableShows?.map((show) => (
-                            <ShowItem
-                                key={show.id}
-                                id={show.id}
-                                movie={moviesData?.filter((movie) => movie.id === show.movieId)[0]}
-                                theater={theatersData?.filter((theater) => theater.id === show.room.theaterId)[0]}
-                                startTime={show.startTime}
-                                deletingMode={deletingMode}
-                            />
-                        ))}
+                        {data &&
+                            (data.length > 0 ? (
+                                data.map((show) => (
+                                    <ShowItem
+                                        key={show.id}
+                                        id={show.id}
+                                        movie={moviesData?.filter((movie) => movie.id === show.movieId)[0]}
+                                        theater={
+                                            theatersData?.filter((theater) => theater.id === show.room.theaterId)[0]
+                                        }
+                                        startTime={show.startTime}
+                                        deletingMode={deletingMode}
+                                    />
+                                ))
+                            ) : (
+                                <li className="shadow-sm border border-blue aspect-square rounded-xl flex items-center justify-center group hover:border-primary">
+                                    <ToolTip content="Create a new show">
+                                        <button onClick={show} className="">
+                                            <i>
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    id="add"
+                                                    x="0"
+                                                    y="0"
+                                                    width={108}
+                                                    height={108}
+                                                    version="1.1"
+                                                    viewBox="0 0 29 29"
+                                                    xmlSpace="preserve"
+                                                >
+                                                    <path
+                                                        className="fill-blue group-hover:fill-primary"
+                                                        d="M14.5 27.071c-6.893 0-12.5-5.607-12.5-12.5s5.607-12.5 12.5-12.5S27 7.678 27 14.571s-5.607 12.5-12.5 12.5zm0-23c-5.79 0-10.5 4.71-10.5 10.5s4.71 10.5 10.5 10.5S25 20.36 25 14.571s-4.71-10.5-10.5-10.5z"
+                                                    ></path>
+                                                    <path
+                                                        className="fill-blue group-hover:fill-primary"
+                                                        d="M14.5 21.571a1 1 0 0 1-1-1v-12a1 1 0 0 1 2 0v12a1 1 0 0 1-1 1z"
+                                                    ></path>
+                                                    <path
+                                                        className="fill-blue group-hover:fill-primary"
+                                                        d="M20.5 15.571h-12a1 1 0 0 1 0-2h12a1 1 0 0 1 0 2z"
+                                                    ></path>
+                                                </svg>
+                                            </i>
+                                        </button>
+                                    </ToolTip>
+                                </li>
+                            ))}
                     </ul>
                 </div>
             </div>

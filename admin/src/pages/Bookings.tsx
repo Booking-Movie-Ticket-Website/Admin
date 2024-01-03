@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import usePortal from "react-cool-portal";
 import { useForm } from "react-hook-form";
 import IsRequired from "~/icons/IsRequired";
-import { useAppDispatch } from "~/hook";
+import { useAppDispatch, useAppSelector } from "~/hook";
 import { startLoading, stopLoading } from "~/actions/loading";
 import { sendMessage } from "~/actions/message";
 import BookingItem from "~/components/BookingItem";
@@ -22,6 +22,9 @@ function Bookings() {
         defaultShow: false
     });
     const dispatch = useAppDispatch();
+
+    const { query } = useAppSelector((state) => state.searching!);
+
     const { handleSubmit } = useForm();
 
     const onSubmit = async () => {
@@ -172,15 +175,17 @@ function Bookings() {
                 <div className="flex flex-col gap-10">
                     <div className="bg-block p-6 rounded-3xl shadow-xl">
                         <ul className="grid grid-cols-2 gap-6 w-full">
-                            {data?.map((booking) => (
-                                <BookingItem
-                                    key={booking.id}
-                                    id={booking.id}
-                                    booking={booking}
-                                    movie={moviesData.filter((movie) => movie.id === booking.showing?.movieId)[0]}
-                                    deletingMode={deletingMode}
-                                />
-                            ))}
+                            {data
+                                ?.filter((booking) => booking.user.email.toLowerCase().includes(query.toLowerCase()))
+                                ?.map((booking) => (
+                                    <BookingItem
+                                        key={booking.id}
+                                        id={booking.id}
+                                        booking={booking}
+                                        movie={moviesData.filter((movie) => movie.id === booking.showing?.movieId)[0]}
+                                        deletingMode={deletingMode}
+                                    />
+                                ))}
                         </ul>
                     </div>
                 </div>

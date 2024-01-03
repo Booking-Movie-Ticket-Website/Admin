@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { useAppDispatch } from "~/hook";
 import { logout } from "~/actions/auth";
 import { useLocation } from "react-router-dom";
+import { search } from "~/actions/searching";
 
 function Header() {
     const [scrollTop, setScrollTop] = useState(0);
@@ -108,7 +109,8 @@ function Header() {
                 </i>
                 <input
                     className="bg-[rgba(141,124,221,0.1)] text-[13px] focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white pl-[40px] py-[10px] rounded-3xl w-[360px] placeholder:text-disabled"
-                    placeholder="Search for anything . . ."
+                    placeholder="Search by name . . ."
+                    onChange={(e) => dispatch(search(e.target.value))}
                 />
             </form>
             <div className="flex items-center gap-6">

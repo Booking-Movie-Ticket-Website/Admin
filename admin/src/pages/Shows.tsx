@@ -205,7 +205,6 @@ function Shows() {
                             </button>
                         </Tippy>
                     </div>
-
                     <div>
                         <Tippy
                             visible={movieFilteringVisible}

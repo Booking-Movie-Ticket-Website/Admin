@@ -9,6 +9,7 @@ import usePortal from "react-cool-portal";
 import IsRequired from "~/icons/IsRequired";
 import formatCurrency from "~/utils/formatCurrency";
 import Tippy from "@tippyjs/react/headless";
+import { convertNormalDate } from "~/utils/convertNormalDate";
 
 function Booking() {
     const [data, setData] = useState<IBookings>();
@@ -96,33 +97,90 @@ function Booking() {
                     </div>
                 </div>
                 <div className="bg-block p-6 rounded-3xl shadow-xl flex flex-col gap-6">
-                    <div className="grid grid-cols-2 gap-4 items-center">
-                        <div className="">
+                    <div className="flex justify-between rounded-xl p-4 border border-blue gap-6">
+                        <div className="text-center w-[40%]">
                             <img
                                 src={
                                     data.showing.movie.moviePosters?.filter((poster) => poster.isThumb === true)[0].link
                                 }
                                 alt="movie poster"
-                                className="rounded-xl w-full h-full group-hover:scale-110 transition-transform duration-300 ease-linear"
+                                className="rounded-xl group-hover:scale-110 transition-transform duration-300 ease-linear"
                             />
+                            <div className="text-lg text-primary font-semibold mt-4">{data.showing.movie.name}</div>
+                            <div>{data.showing.movie.director}</div>
                         </div>
-                        <div>
-                            <div className="text-lg text-blue mb-4">{data.showing.movie.name}</div>
-                            <div className="">
-                                <span className="font-medium text-blue">Price: </span>
-                                {formatCurrency(data.totalPrice)} VND
+                        <div className="p-4 w-[60%] flex justify-between">
+                            <div>
+                                <div className="mb-2">
+                                    <div className="text-base font-medium text-primary mb-2">Booking Information</div>
+                                    <div className="">
+                                        <span className="font-medium text-blue">Price: </span>
+                                        {formatCurrency(data.totalPrice)} VND
+                                    </div>
+                                    <div className="capitalize">
+                                        <span className="font-medium text-blue">Status: </span>
+                                        {data.status}
+                                    </div>
+                                    <div className="capitalize">
+                                        <span className="font-medium text-blue">Theater: </span>
+                                        {data.showing.room.theater.name + " - " + data.showing.room.theater.city}
+                                    </div>
+                                    <div className="capitalize">
+                                        <span className="font-medium text-blue">Address: </span>
+                                        {data.showing.room.theater.address}
+                                    </div>
+                                    <div className="capitalize">
+                                        <span className="font-medium text-blue">Room: </span>
+                                        {data.showing.room.name + " - " + data.showing.room.type}
+                                    </div>
+                                    <div className="font-medium text-blue">All seats:</div>
+                                    {data.showingSeats.map((seat) => (
+                                        <li key={seat.id} className="ml-4 capitalize">
+                                            {seat.type === "standard" ? (
+                                                <span className="">
+                                                    Seat:{" "}
+                                                    {seat.seat.seatRow +
+                                                        seat.seat.seatColumn +
+                                                        " - " +
+                                                        formatCurrency(seat.price) +
+                                                        " VND"}
+                                                </span>
+                                            ) : (
+                                                <span className="">
+                                                    Couple seat:{" "}
+                                                    {seat.seat.seatRow + seat.seat.seatColumn + " - " + "100,000 VND"}
+                                                </span>
+                                            )}
+                                        </li>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="capitalize">
-                                <span className="font-medium text-blue">Status: </span>
-                                {data.status}
-                            </div>
-                            <div className="">
-                                <span className="font-medium text-blue">User: </span>
-                                {data.user.email}
-                            </div>
-                            <div className="capitalize">
-                                <span className="font-medium text-blue">Name: </span>
-                                {data.user.firstName} {data.user.lastName}
+                            <div>
+                                <div className="text-base font-medium text-primary mb-2">User Information</div>
+                                <div className="">
+                                    <span className="font-medium text-blue">User: </span>
+                                    {data.user.email}
+                                </div>
+                                <div className="capitalize">
+                                    <span className="font-medium text-blue">Name: </span>
+                                    {data.user.firstName} {data.user.lastName}
+                                </div>
+                                <div className="capitalize">
+                                    <span className="font-medium text-blue">Gender: </span>
+                                    {data.user.gender}
+                                </div>
+                                <div className="capitalize">
+                                    <span className="font-medium text-blue">Address: </span>
+                                    {data.user.address}
+                                </div>
+                                <div className="">
+                                    <span className="font-medium text-blue">Phone number: </span>
+                                    {data.user.phoneNumber}
+                                </div>
+                                <div className="capitalize">
+                                    <span className="font-medium text-blue">Birthday: </span>
+                                    {convertNormalDate(data.user.dateOfBirth)}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -130,7 +188,7 @@ function Booking() {
                 <Portal>
                     <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                         <div className="flex items-center justify-center">
-                            <div className="border border-blue p-8 bg-background relative rounded-xl overflow-y-scroll no-scrollbar">
+                            <div className="border border-blue p-8 bg-background relative rounded-xl no-scrollbar">
                                 <button
                                     onClick={hide}
                                     className="absolute right-4 top-4 border border-blue rounded-full p-1 hover:border-primary hover:bg-primary"

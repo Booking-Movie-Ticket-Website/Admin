@@ -10,9 +10,10 @@ interface Props {
     type: string;
     deletingMode: boolean;
     reloadFlag: boolean;
+    categoryId: string;
 }
 
-const MoviesList: React.FC<Props> = ({ type, deletingMode, reloadFlag }) => {
+const MoviesList: React.FC<Props> = ({ type, deletingMode, reloadFlag, categoryId }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const { query } = useAppSelector((state) => state.searching!);
@@ -21,14 +22,19 @@ const MoviesList: React.FC<Props> = ({ type, deletingMode, reloadFlag }) => {
         setLoading(true);
         (async () => {
             await axios
-                .get(`/movies?page=1&take=20&filterMovies=${type}`, { headers: { "Content-Type": "application/json" } })
+                .get(
+                    `/movies?page=1&take=20${
+                        categoryId !== "" ? `&categoryId=${categoryId}` : ""
+                    }&filterMovies=${type}`,
+                    { headers: { "Content-Type": "application/json" } }
+                )
                 .then((response) => {
                     setData(response.data.data);
                     setLoading(false);
                 })
                 .catch((error) => console.error(error));
         })();
-    }, [type, reloadFlag]);
+    }, [type, reloadFlag, categoryId]);
 
     return (
         <div className="mb-10">

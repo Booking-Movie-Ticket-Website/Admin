@@ -299,7 +299,7 @@ const Seats: React.FC<Props> = ({ id }) => {
                                     <div
                                         key={seat.id}
                                         className={`cursor-pointer relative rounded-lg p-2 border border-blue  hover:bg-primary hover:border-primary ${
-                                            seat.type === "couple" && "bg-mdRed border-mdRed pointer-events-none"
+                                            seat.type === "couple" && "bg-pink border-pink pointer-events-none"
                                         } ${
                                             selectedSeats.map((selectedSeat) => selectedSeat.id).includes(seat.id)
                                                 ? "border-primary bg-primary"
@@ -331,14 +331,14 @@ const Seats: React.FC<Props> = ({ id }) => {
                                             numberOfRow={seat.seatRow}
                                         />
                                         {data[index + 1]?.pairWith === seat.id && (
-                                            <li className="absolute top-[-5px] right-[-19px] text-4xl">-</li>
+                                            <li className="absolute top-[-17px] right-[-24px] text-6xl">-</li>
                                         )}
                                     </div>
                                 ) : (
                                     <div
                                         key={seat.id}
                                         className={`p-2 border border-blue relative rounded-lg ${
-                                            seat.type === "couple" && "bg-mdRed border-mdRed"
+                                            seat.type === "couple" && "bg-pink border-pink"
                                         }`}
                                     >
                                         <SeatItem
@@ -347,7 +347,7 @@ const Seats: React.FC<Props> = ({ id }) => {
                                             numberOfRow={seat.seatRow}
                                         />
                                         {data[index + 1]?.pairWith === seat.id && (
-                                            <li className="absolute top-[-5px] right-[-19px] text-4xl">-</li>
+                                            <li className="absolute top-[-17px] right-[-24px] text-6xl">-</li>
                                         )}
                                     </div>
                                 )

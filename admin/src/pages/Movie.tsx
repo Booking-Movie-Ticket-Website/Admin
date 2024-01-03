@@ -43,7 +43,6 @@ function Movie() {
     const [rating, setRating] = useState<number>(5);
     const [reviewContent, setReviewContent] = useState<string>("");
     const [deletingReview, setDeletingReview] = useState<boolean[]>([]);
-    const [updatingReview, setUpdatingReview] = useState<boolean[]>([]);
     const [updatingReviewContent, setUpdatingReviewContent] = useState<string>("");
     const {
         control,
@@ -612,35 +611,6 @@ function Movie() {
                                                     <div className="absolute top-2 right-2 flex items-center gap-2">
                                                         <button
                                                             onClick={() => {
-                                                                const updatedUpdatingReview = Array(
-                                                                    updatingReview.length
-                                                                ).fill(false);
-                                                                updatedUpdatingReview[index] = true;
-                                                                setUpdatingReview(updatedUpdatingReview);
-                                                                setUpdatingReviewContent(review.description);
-                                                            }}
-                                                            className="rounded-lg p-1 bg-block border-blue border hover:border-primary hover:bg-primary flex items-center justify-center"
-                                                        >
-                                                            <i className="">
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    viewBox="0 0 24 24"
-                                                                    width={24}
-                                                                    height={24}
-                                                                    id="edit"
-                                                                >
-                                                                    <g data-name="Layer 2">
-                                                                        <path
-                                                                            className="fill-white"
-                                                                            d="M19.4 7.34 16.66 4.6A2 2 0 0 0 14 4.53l-9 9a2 2 0 0 0-.57 1.21L4 18.91a1 1 0 0 0 .29.8A1 1 0 0 0 5 20h.09l4.17-.38a2 2 0 0 0 1.21-.57l9-9a1.92 1.92 0 0 0-.07-2.71zM9.08 17.62l-3 .28.27-3L12 9.32l2.7 2.7zM16 10.68 13.32 8l1.95-2L18 8.73z"
-                                                                            data-name="edit"
-                                                                        ></path>
-                                                                    </g>
-                                                                </svg>
-                                                            </i>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
                                                                 const updatedDeletingReview = Array(
                                                                     deletingReview.length
                                                                 ).fill(false);
@@ -717,44 +687,10 @@ function Movie() {
                                                                     ))}
                                                         </div>
                                                     </div>
-                                                    {updatingReview[index] === true ? (
-                                                        <textarea
-                                                            onChange={(e) => setUpdatingReviewContent(e.target.value)}
-                                                            value={updatingReviewContent}
-                                                            placeholder="New review . . ."
-                                                            className="bg-[rgba(141,124,221,0.1)] mt-6 w-full text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
-                                                        />
-                                                    ) : (
-                                                        review.description && (
-                                                            <div className="mt-3">{review.description}</div>
-                                                        )
+                                                    {review.description && (
+                                                        <div className="mt-3">{review.description}</div>
                                                     )}
                                                 </div>
-                                                {updatingReview[index] === true ? (
-                                                    <div className="flex justify-end mt-6">
-                                                        <div className="flex gap-6">
-                                                            <button
-                                                                onClick={() => updateReview(review.id)}
-                                                                className="px-5 py-2 border border-blue hover:border-primary hover:bg-primary rounded-lg"
-                                                            >
-                                                                Update
-                                                            </button>
-                                                            <button
-                                                                onClick={() => {
-                                                                    const updatedUpdatingReview = Array(
-                                                                        updatingReview.length
-                                                                    ).fill(false);
-                                                                    setUpdatingReview(updatedUpdatingReview);
-                                                                }}
-                                                                className="px-5 py-2 border border-blue hover:border-primary hover:bg-primary rounded-lg"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    ""
-                                                )}
                                             </div>
                                         </Tippy>
                                     ))

@@ -251,6 +251,7 @@ interface IShows {
         roomId: string;
         price: string;
         isBooked: boolean;
+        pairWith: null | string;
     }>;
 }
 
@@ -283,5 +284,33 @@ interface IBookings {
         movieId: string;
         roomId: string;
         movie: IMovie;
+        room: {
+            name: string;
+            type: string;
+            theater: {
+                id: string;
+                name: string;
+                city: string;
+                address: string;
+            };
+        };
     };
+    showingSeats: [
+        {
+            id: string;
+            type: string;
+            price: number;
+            showingId: string;
+            seatId: string;
+            bookingId: string;
+            seat: {
+                id: string;
+                seatRow: string;
+                seatColumn: string;
+                type: string;
+                pairWith: null | string;
+                roomId: string;
+            };
+        }
+    ];
 }

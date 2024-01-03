@@ -43,6 +43,11 @@ function Movies() {
     const [isActive, setActive] = useState(false);
     const [reloadFlag, setReloadFlag] = useState(false);
     const [error, setError] = useState(false);
+    const [movieFilteringVisible, setMovieFilteringVisible] = useState(false);
+    const [movieFiltering, setMovieFiltering] = useState<{ id: string; name: string }>({
+        id: "",
+        name: ""
+    });
     const [categories, setCategories] = useState(
         Array<{
             id: string;
@@ -199,106 +204,178 @@ function Movies() {
     return (
         <>
             <div className="flex justify-between items-center mb-6">
-                <div>
-                    <Tippy
-                        visible={visible}
-                        interactive
-                        onClickOutside={() => setVisible(false)}
-                        offset={[0, 0]}
-                        render={(attrs) => (
-                            <div
-                                {...attrs}
-                                tabIndex={-1}
-                                className={`flex text-white p-2 rounded-bl-xl rounded-br-xl flex-col bg-background border-border border justify-center w-[232px] ${
-                                    visible ? "border-primary border-t-0 bg-block" : ""
-                                }`}
-                            >
-                                <button
-                                    onClick={() => {
-                                        setType("");
-                                        setVisible(false);
-                                        setTitle("All");
-                                    }}
-                                    className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
-                                        type === "" ? "text-blue pointer-events-none" : ""
+                <div className="flex gap-4">
+                    <div>
+                        <Tippy
+                            visible={visible}
+                            interactive
+                            onClickOutside={() => setVisible(false)}
+                            offset={[0, 0]}
+                            render={(attrs) => (
+                                <div
+                                    {...attrs}
+                                    tabIndex={-1}
+                                    className={`flex text-white p-2 rounded-bl-xl rounded-br-xl flex-col bg-background border-border border justify-center w-[232px] ${
+                                        visible ? "border-primary border-t-0 bg-block" : ""
                                     }`}
                                 >
-                                    All movies
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setType("BANNER");
-                                        setVisible(false);
-                                        setTitle("Banner");
-                                    }}
-                                    className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
-                                        type === "BANNER" ? "text-blue pointer-events-none" : ""
-                                    }`}
-                                >
-                                    Banner movies
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setType("NOW_PLAYING");
-                                        setVisible(false);
-                                        setTitle("Now playing");
-                                    }}
-                                    className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
-                                        type === "NOW_PLAYING" ? "text-blue pointer-events-none" : ""
-                                    }`}
-                                >
-                                    Now playing movies
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setType("TOP_FEATURED");
-                                        setVisible(false);
-                                        setTitle("Top featured");
-                                    }}
-                                    className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
-                                        type === "TOP_FEATURED" ? "text-blue pointer-events-none" : ""
-                                    }`}
-                                >
-                                    Top featured movies
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setType("COMING_SOON");
-                                        setVisible(false);
-                                        setTitle("Coming soon");
-                                    }}
-                                    className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
-                                        type === "COMING_SOON" ? "text-blue pointer-events-none" : ""
-                                    }`}
-                                >
-                                    Coming soon movies
-                                </button>
-                            </div>
-                        )}
-                    >
-                        <button
-                            onClick={() => setVisible(!visible)}
-                            className={`hover:border-primary bg-block py-3 px-5 border-blue border ${
-                                visible ? "rounded-tl-xl rounded-tr-xl border-primary" : "rounded-xl"
-                            }   flex justify-between items-center w-[232px]`}
+                                    <button
+                                        onClick={() => {
+                                            setType("");
+                                            setVisible(false);
+                                            setTitle("All");
+                                        }}
+                                        className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                            type === "" ? "text-blue pointer-events-none" : ""
+                                        }`}
+                                    >
+                                        All movies
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setType("BANNER");
+                                            setVisible(false);
+                                            setTitle("Banner");
+                                        }}
+                                        className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                            type === "BANNER" ? "text-blue pointer-events-none" : ""
+                                        }`}
+                                    >
+                                        Banner movies
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setType("NOW_PLAYING");
+                                            setVisible(false);
+                                            setTitle("Now playing");
+                                        }}
+                                        className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                            type === "NOW_PLAYING" ? "text-blue pointer-events-none" : ""
+                                        }`}
+                                    >
+                                        Now playing movies
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setType("TOP_FEATURED");
+                                            setVisible(false);
+                                            setTitle("Top featured");
+                                        }}
+                                        className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                            type === "TOP_FEATURED" ? "text-blue pointer-events-none" : ""
+                                        }`}
+                                    >
+                                        Top featured movies
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setType("COMING_SOON");
+                                            setVisible(false);
+                                            setTitle("Coming soon");
+                                        }}
+                                        className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                            type === "COMING_SOON" ? "text-blue pointer-events-none" : ""
+                                        }`}
+                                    >
+                                        Coming soon movies
+                                    </button>
+                                </div>
+                            )}
                         >
-                            <span className="">{title} movies</span>
-                            <i className={`${visible ? "rotate-180" : ""}`}>
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="20"
-                                    height="20"
-                                    viewBox="0 0 16 16"
-                                    id="chevron-down"
+                            <button
+                                onClick={() => setVisible(!visible)}
+                                className={`hover:border-primary bg-block py-3 px-5 border-blue border ${
+                                    visible ? "rounded-tl-xl rounded-tr-xl border-primary" : "rounded-xl"
+                                }   flex justify-between items-center w-[232px]`}
+                            >
+                                <span className="">{title} movies</span>
+                                <i className={`${visible ? "rotate-180" : ""}`}>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 16 16"
+                                        id="chevron-down"
+                                    >
+                                        <path
+                                            fill="#fff"
+                                            d="M4.14645,5.64645 C4.34171,5.45118 4.65829,5.45118 4.85355,5.64645 L7.9999975,8.79289 L11.1464,5.64645 C11.3417,5.45118 11.6583,5.45118 11.8536,5.64645 C12.0488,5.84171 12.0488,6.15829 11.8536,6.35355 L8.35355,9.85355 C8.15829,10.0488 7.84171,10.0488 7.64645,9.85355 L4.14645,6.35355 C3.95118,6.15829 3.95118,5.84171 4.14645,5.64645 Z"
+                                        ></path>
+                                    </svg>
+                                </i>
+                            </button>
+                        </Tippy>
+                    </div>
+                    <div>
+                        <Tippy
+                            visible={movieFilteringVisible}
+                            interactive
+                            onClickOutside={() => setMovieFilteringVisible(false)}
+                            offset={[0, 0]}
+                            render={(attrs) => (
+                                <div
+                                    {...attrs}
+                                    tabIndex={-1}
+                                    className={`flex text-white p-2 rounded-bl-xl rounded-br-xl flex-col bg-background border-border border justify-center w-[170px] ${
+                                        movieFilteringVisible ? "border-primary border-t-0 bg-block" : ""
+                                    }`}
                                 >
-                                    <path
-                                        fill="#fff"
-                                        d="M4.14645,5.64645 C4.34171,5.45118 4.65829,5.45118 4.85355,5.64645 L7.9999975,8.79289 L11.1464,5.64645 C11.3417,5.45118 11.6583,5.45118 11.8536,5.64645 C12.0488,5.84171 12.0488,6.15829 11.8536,6.35355 L8.35355,9.85355 C8.15829,10.0488 7.84171,10.0488 7.64645,9.85355 L4.14645,6.35355 C3.95118,6.15829 3.95118,5.84171 4.14645,5.64645 Z"
-                                    ></path>
-                                </svg>
-                            </i>
-                        </button>
-                    </Tippy>
+                                    <button
+                                        onClick={() => {
+                                            setMovieFiltering({ id: "", name: "" });
+                                            setMovieFilteringVisible(false);
+                                        }}
+                                        className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                            movieFiltering.id === "" && "text-blue pointer-events-none"
+                                        }`}
+                                    >
+                                        All categories
+                                    </button>
+                                    {categories.map((category) => (
+                                        <button
+                                            key={category.id}
+                                            onClick={() => {
+                                                setMovieFiltering({ id: category.id, name: category.name });
+                                                setMovieFilteringVisible(false);
+                                            }}
+                                            className={`py-3 px-4 hover:bg-primary text-left rounded-lg ${
+                                                movieFiltering.id === category.id ? "text-blue pointer-events-none" : ""
+                                            }`}
+                                        >
+                                            {category.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        >
+                            <button
+                                onClick={() => setMovieFilteringVisible(!movieFilteringVisible)}
+                                className={`hover:border-primary bg-block py-3 px-5 border-blue border ${
+                                    movieFilteringVisible ? "rounded-tl-xl rounded-tr-xl border-primary" : "rounded-xl"
+                                }   flex justify-between items-center w-[170px]`}
+                            >
+                                {movieFiltering.id !== "" ? (
+                                    <span className="">{movieFiltering.name}</span>
+                                ) : (
+                                    <span className="">All categories</span>
+                                )}
+                                <i className={`${movieFilteringVisible ? "rotate-180" : ""}`}>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 16 16"
+                                        id="chevron-down"
+                                    >
+                                        <path
+                                            fill="#fff"
+                                            d="M4.14645,5.64645 C4.34171,5.45118 4.65829,5.45118 4.85355,5.64645 L7.9999975,8.79289 L11.1464,5.64645 C11.3417,5.45118 11.6583,5.45118 11.8536,5.64645 C12.0488,5.84171 12.0488,6.15829 11.8536,6.35355 L8.35355,9.85355 C8.15829,10.0488 7.84171,10.0488 7.64645,9.85355 L4.14645,6.35355 C3.95118,6.15829 3.95118,5.84171 4.14645,5.64645 Z"
+                                        ></path>
+                                    </svg>
+                                </i>
+                            </button>
+                        </Tippy>
+                    </div>
                 </div>
                 <div className="flex gap-3 items-center">
                     <button
@@ -364,7 +441,12 @@ function Movies() {
                     <div className="p-6 text-[15px]">Select a movie below to delete.</div>
                 </div>
             )}
-            <MoviesList type={type} deletingMode={deletingMode} reloadFlag={reloadFlag} />
+            <MoviesList
+                type={type}
+                deletingMode={deletingMode}
+                reloadFlag={reloadFlag}
+                categoryId={movieFiltering.id}
+            />
             <Portal>
                 <div className="fixed top-0 right-0 left-0 bottom-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-center justify-center">
                     <div className="flex items-center justify-center">

@@ -33,12 +33,14 @@ const ActorItem: React.FC<Props> = ({ fullName, profilePicture, deletingMode, id
             })
             .then(() => {
                 dispatch(stopLoading());
-                window.location.reload();
-                toast("Delete successfully!");
+                toast("Deleted successfully!");
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
             })
             .catch((error) => {
                 console.error(error);
-                toast("Delete failed!");
+                toast("Deleted failed!");
                 hide();
             });
     };

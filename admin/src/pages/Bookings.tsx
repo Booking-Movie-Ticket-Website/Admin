@@ -8,6 +8,7 @@ import { startLoading, stopLoading } from "~/actions/loading";
 import { sendMessage } from "~/actions/message";
 import BookingItem from "~/components/BookingItem";
 import convertTimeStamp from "~/utils/convertTimeStamp";
+import getNumsOfCol from "~/utils/getNumsOfCol";
 
 function Bookings() {
     const [data, setData] = useState<Array<IBookings>>([]);
@@ -18,6 +19,7 @@ function Bookings() {
     const [moviesData, setMoviesData] = useState<Array<IMovieData>>([]);
     const [selectedShow, setSelectedShow] = useState<string>("");
     const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+    const [numsOfCol, setNumsOfCol] = useState<number>(0);
     const { Portal, show, hide } = usePortal({
         defaultShow: false
     });
@@ -117,6 +119,8 @@ function Bookings() {
                     .get(`/showings/${selectedShow}`, { headers: { "Content-Type": "application/json" } })
                     .then((response) => {
                         setShowDetails(response.data);
+                        if (response.data.showingSeats.length > 0)
+                            setNumsOfCol(getNumsOfCol(response.data.showingSeats));
                         setSelectedSeats([]);
                     })
                     .catch((err) => console.error(err));
@@ -345,34 +349,79 @@ function Bookings() {
                                             Seats
                                             <IsRequired />
                                         </label>
+
                                         <span className="text-xs">Click on seats below to add seats.</span>
-                                        <div className="grid grid-cols-8 gap-4 mt-4">
+                                        <div className="flex gap-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-4 h-4 bg-primary"></div>
+                                                <span>Selected</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-4 h-4 bg-pink"></div>
+                                                <span>Couple seat</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-4 h-4 bg-mdRed"></div>
+                                                <span>Booked</span>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className="grid gap-4 mt-4"
+                                            style={{ gridTemplateColumns: `repeat(${numsOfCol}, minmax(0, 1fr))` }}
+                                        >
                                             {showDetails && showDetails.showingSeats.length > 0 ? (
-                                                showDetails.showingSeats.map((seat) => (
+                                                showDetails.showingSeats.map((seat, index) => (
                                                     <div
                                                         onClick={() => {
-                                                            setSelectedSeats([...selectedSeats, seat.id]);
+                                                            if (selectedSeats.includes(seat.id)) {
+                                                                if (seat.pairWith === null) {
+                                                                    const filteredArr = selectedSeats.filter(
+                                                                        (selectedSeatId) => selectedSeatId !== seat.id
+                                                                    );
+                                                                    setSelectedSeats(filteredArr);
+                                                                } else {
+                                                                    const filteredArr = selectedSeats.filter(
+                                                                        (selectedSeatId) =>
+                                                                            selectedSeatId !== seat.id &&
+                                                                            selectedSeatId !== seat.pairWith
+                                                                    );
+                                                                    setSelectedSeats(filteredArr);
+                                                                }
+                                                            } else {
+                                                                if (seat.pairWith === null)
+                                                                    setSelectedSeats([...selectedSeats, seat.id]);
+                                                                else
+                                                                    setSelectedSeats([
+                                                                        ...selectedSeats,
+                                                                        seat.id,
+                                                                        seat.pairWith
+                                                                    ]);
+                                                            }
                                                         }}
                                                         key={seat.id}
-                                                        className={`text-center border cursor-pointer relative border-blue hover:border-primary rounded-lg p-2 ${
-                                                            selectedSeats.includes(seat.id)
-                                                                ? "bg-primary border-primary"
-                                                                : ""
-                                                        } ${
+                                                        className={`text-center border cursor-pointer relative border-blue hover:border-primary hover:bg-primary rounded-lg p-2${
                                                             seat.isBooked
                                                                 ? "bg-mdRed border-mdRed pointer-events-none"
                                                                 : ""
-                                                        }`}
+                                                        } ${seat.type === "couple" && "bg-pink border-pink"}  ${
+                                                            selectedSeats.includes(seat.id)
+                                                                ? "!bg-primary !border-primary"
+                                                                : ""
+                                                        } `}
                                                     >
-                                                        <div className="capitalize">{seat.type}</div>
                                                         <div>
                                                             {seat.seatRow}
                                                             {seat.seatColumn}
                                                         </div>
+                                                        {showDetails.showingSeats[index + 1]?.pairWith === seat.id && (
+                                                            <div className="absolute top-[-17px] right-[-21px] text-6xl">
+                                                                -
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))
                                             ) : (
-                                                <span>No seat.</span>
+                                                <span>No seats.</span>
                                             )}
                                         </div>
                                     </div>

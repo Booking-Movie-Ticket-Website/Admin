@@ -21,7 +21,8 @@ export const theme = {
         block: "#262a38",
         red: "#e69473",
         deepRed: "#ff0000",
-        mdRed: "#ff5f56"
+        mdRed: "#ff5f56",
+        pink: "#DE3163"
     },
     extend: {}
 };

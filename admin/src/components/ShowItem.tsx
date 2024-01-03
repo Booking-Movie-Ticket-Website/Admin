@@ -5,7 +5,7 @@ import usePortal from "react-cool-portal";
 import { toast } from "react-toastify";
 import { useAppDispatch } from "~/hook";
 import { startLoading, stopLoading } from "~/actions/loading";
-import convertTimeStamp from "~/utils/convertTimeStamp";
+import getFormattedDateTime from "~/utils/getFormattedDateTime";
 
 interface Props {
     id: string;
@@ -93,7 +93,7 @@ const ShowItem: React.FC<Props> = ({ id, movie, startTime, theater, deletingMode
                                                 {theater?.name} - {theater?.city}
                                             </div>
                                             <div className="">{theater?.address}</div>
-                                            <div>Start time: {convertTimeStamp(startTime)}</div>
+                                            <div>Start time: {getFormattedDateTime(startTime)}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -137,7 +137,7 @@ const ShowItem: React.FC<Props> = ({ id, movie, startTime, theater, deletingMode
                                                 {theater?.name} - {theater?.city}
                                             </div>
                                             <div className="">{theater?.address}</div>
-                                            <div>Start time: {convertTimeStamp(startTime)}</div>
+                                            <div>Start time: {getFormattedDateTime(startTime)}</div>
                                         </div>
                                     </div>
                                 </div>

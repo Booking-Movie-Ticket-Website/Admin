@@ -9,6 +9,7 @@ import { sendMessage } from "~/actions/message";
 import BookingItem from "~/components/BookingItem";
 import convertTimeStamp from "~/utils/convertTimeStamp";
 import getNumsOfCol from "~/utils/getNumsOfCol";
+import getFormattedDateTime from "~/utils/getFormattedDateTime";
 
 function Bookings() {
     const [data, setData] = useState<Array<IBookings>>([]);
@@ -65,52 +66,53 @@ function Bookings() {
     };
 
     useEffect(() => {
-        (async () => {
-            await axios
-                .get("/bookings?page=1&take=40", {
+        const fetchData = async () => {
+            try {
+                dispatch(startLoading());
+
+                const bookingsResponse = await axios.get("/bookings?page=1&take=40", {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
                     }
-                })
-                .then((response) => {
-                    setData(response.data.data);
-                })
-                .catch((err) => console.error(err));
-        })();
+                });
+                setData(bookingsResponse.data.data);
 
-        (async () => {
-            await axios
-                .get("/showings?page=1&take=50&isAvailable=true", { headers: { "Content-Type": "application/json" } })
-                .then((showResponse) => {
-                    setShowsData(showResponse.data.data);
-                    (async () => {
-                        await axios
-                            .get(`/movies?page=1&take=20`, { headers: { "Content-Type": "application/json" } })
-                            .then((movieResponse) => {
-                                setMoviesData(
-                                    movieResponse.data.data.filter((movie: { id: string }) =>
-                                        showResponse.data.data.some(
-                                            (show: { movieId: string }) => show.movieId === movie.id
-                                        )
-                                    )
-                                );
-                            })
-                            .catch((error) => console.error(error));
-                    })();
-                })
-                .catch((err) => console.error(err));
-        })();
+                const showingsResponse = await axios.get("/showings?page=1&take=50&isAvailable=true", {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
+                });
+                setShowsData(showingsResponse.data.data);
 
-        (async () => {
-            await axios
-                .get("/theaters?page=1&take=20", { headers: { "Content-Type": "application/json" } })
-                .then((response) => {
-                    setTheatersData(response.data.data);
-                })
-                .catch((err) => console.error(err));
-        })();
-    }, []);
+                const moviesResponse = await axios.get("/movies?page=1&take=20", {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
+                });
+                const filteredMovies = moviesResponse.data.data.filter((movie) =>
+                    showingsResponse.data.data.some((show) => show.movieId === movie.id)
+                );
+                setMoviesData(filteredMovies);
+
+                const theatersResponse = await axios.get("/theaters?page=1&take=20", {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
+                });
+                setTheatersData(theatersResponse.data.data);
+
+                dispatch(stopLoading());
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchData();
+    }, [dispatch]);
 
     useEffect(() => {
         if (selectedShow !== "") {
@@ -314,7 +316,7 @@ function Bookings() {
                                                                         </div>
                                                                         <div>
                                                                             Start time:{" "}
-                                                                            {convertTimeStamp(show.startTime)}
+                                                                            {getFormattedDateTime(show.startTime)}
                                                                         </div>
                                                                     </div>
                                                                 </div>

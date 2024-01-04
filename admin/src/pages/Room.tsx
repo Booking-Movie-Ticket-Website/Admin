@@ -220,7 +220,8 @@ const Room: React.FC<Props> = ({ id }) => {
                                                 visible={theatersMenuVisible}
                                                 interactive
                                                 onClickOutside={() => setTheatersMenuVisible(false)}
-                                                offset={[0, -243]}
+                                                offset={[0, 0]}
+                                                placement="bottom"
                                                 render={(attrs) => (
                                                     <ul
                                                         className={`border border-primary w-[400px] rounded-lg p-2 max-h-[300px] overflow-y-scroll no-scrollbar bg-background ${

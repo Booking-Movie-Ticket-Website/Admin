@@ -43,7 +43,6 @@ function Movie() {
     const [rating, setRating] = useState<number>(5);
     const [reviewContent, setReviewContent] = useState<string>("");
     const [deletingReview, setDeletingReview] = useState<boolean[]>([]);
-    const [updatingReviewContent, setUpdatingReviewContent] = useState<string>("");
     const {
         control,
         register,
@@ -112,6 +111,10 @@ function Movie() {
             description: string;
             star: number;
             movieId: number;
+            createdUser: {
+                firstName: string;
+                lastName: string;
+            };
         }>
     >();
 
@@ -170,7 +173,6 @@ function Movie() {
                     setValue("director", response.data.director || "");
                     if (response.data.reviews.length > 0) {
                         setDeletingReview(Array(response.data.reviews.length - 1).fill(false));
-                        setUpdatingReview(Array(response.data.reviews.length - 1).fill(false));
                     }
                 })
                 .catch((error) => console.error(error));
@@ -302,33 +304,6 @@ function Movie() {
             .catch((error) => {
                 dispatch(stopLoading());
                 dispatch(sendMessage("Deleted failed!"));
-                console.error(error);
-            });
-    };
-
-    const updateReview = async (reviewId: string) => {
-        dispatch(startLoading());
-        await axios
-            .patch(
-                `/reviews/${reviewId}`,
-                {
-                    description: updatingReviewContent
-                },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
-                    }
-                }
-            )
-            .then(() => {
-                dispatch(stopLoading());
-                dispatch(sendMessage("Updated sucessfully!"));
-                setTimeout(() => window.location.reload(), 2000);
-            })
-            .catch((error) => {
-                dispatch(stopLoading());
-                dispatch(sendMessage("Updated failed!"));
                 console.error(error);
             });
     };
@@ -641,7 +616,11 @@ function Movie() {
                                                     </div>
                                                     <div className="flex flex-col gap-2">
                                                         <div className="text-blue font-medium text-[15px]">
-                                                            <div>User-{review.id}</div>
+                                                            <div>
+                                                                {review.createdUser.firstName +
+                                                                    " " +
+                                                                    review.createdUser.lastName}
+                                                            </div>
                                                         </div>
                                                         <div className="flex gap-1">
                                                             {Array(review.star)

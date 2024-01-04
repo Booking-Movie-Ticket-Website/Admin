@@ -57,7 +57,7 @@ function Shows() {
     const onSubmit: SubmitHandler<IShowsValidation> = async (formData) => {
         hide();
         dispatch(startLoading());
-        const localDateTime = `${convertReleaseDate(formData.startTime)}T${time}:00.000Z`;
+        const startTime = `${convertReleaseDate(formData.startTime)} ${time}:00`;
 
         const movieId = selectedMovie?.id;
         const roomId = selectedRoom?.id;
@@ -67,7 +67,7 @@ function Shows() {
                 .post(
                     "/showings",
                     {
-                        startTime: localDateTime,
+                        startTime: startTime,
                         movieId,
                         roomId
                     },
@@ -95,48 +95,76 @@ function Shows() {
 
     useEffect(() => {
         (async () => {
-            await axios
-                .get(
+            try {
+                dispatch(startLoading());
+
+                const showsResponse = await axios.get(
                     `/showings?page=1&take=50${movieFiltering.id !== "" ? `&movieId=${movieFiltering.id}` : ""}${
                         theaterFiltering.id !== "" ? `&theaterId=${theaterFiltering.id}` : ""
                     }&isAvailable=${isAvailable}`,
                     {
                         headers: { "Content-Type": "application/json" }
                     }
-                )
-                .then((response) => {
-                    setData(response.data.data);
-                })
-                .catch((err) => console.error(err));
-        })();
+                );
+                setData(showsResponse.data.data);
 
-        (async () => {
-            await axios
-                .get(`/movies?page=1&take=20`, { headers: { "Content-Type": "application/json" } })
-                .then((response) => {
-                    setMoviesData(response.data.data);
-                })
-                .catch((error) => console.error(error));
-        })();
+                const nowPlayingMoviesResponse = await axios.get("/movies?page=1&take=20&filterMovies=NOW_PLAYING", {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
+                });
 
-        (async () => {
-            await axios
-                .get("/theaters?page=1&take=20", { headers: { "Content-Type": "application/json" } })
-                .then((response) => {
-                    setTheatersData(response.data.data);
-                })
-                .catch((err) => console.error(err));
-        })();
+                const bannerMoviesResponse = await axios.get("/movies?page=1&take=20&filterMovies=BANNER", {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
+                });
 
-        (async () => {
-            await axios
-                .get("/rooms?page=1&take=20", { headers: { "Content-Type": "application/json" } })
-                .then((response) => {
-                    setRoomsData(response.data.data);
-                })
-                .catch((err) => console.error(err));
+                const topFeaturedMoviesResponse = await axios.get("/movies?page=1&take=20&filterMovies=TOP_FEATURED", {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
+                });
+
+                const moviesResponse = [
+                    ...nowPlayingMoviesResponse.data.data,
+                    ...topFeaturedMoviesResponse.data.data,
+                    ...bannerMoviesResponse.data.data
+                ];
+
+                const uniqueMovies = Array.from(
+                    moviesResponse
+                        .reduce((uniqueMap, movie) => {
+                            uniqueMap.set(movie.id, movie);
+                            return uniqueMap;
+                        }, new Map())
+                        .values()
+                );
+
+                const filteredMovies = uniqueMovies.filter((movie) =>
+                    showsResponse.data.data.some((show) => show.movieId === movie.id)
+                );
+                setMoviesData(filteredMovies);
+
+                const theatersResponse = await axios.get("/theaters?page=1&take=20", {
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                setTheatersData(theatersResponse.data.data);
+
+                const roomsResponse = await axios.get("/rooms?page=1&take=20", {
+                    headers: { "Content-Type": "application/json" }
+                });
+                setRoomsData(roomsResponse.data.data);
+                dispatch(stopLoading());
+            } catch (error) {
+                console.error(error);
+            }
         })();
-    }, [isAvailable, movieFiltering.id, theaterFiltering.id]);
+    }, [isAvailable, movieFiltering.id, theaterFiltering.id, dispatch]);
 
     return (
         <>
@@ -506,7 +534,8 @@ function Shows() {
                                             visible={moviesMenuVisible}
                                             interactive
                                             onClickOutside={() => setMoviesMenuVisible(false)}
-                                            offset={[0, -279]}
+                                            offset={[0, 0]}
+                                            placement="bottom"
                                             render={(attrs) => (
                                                 <ul
                                                     className={`border border-primary rounded-lg p-2 max-h-[300px] w-[384px] overflow-y-scroll no-scrollbar bg-background ${
@@ -579,7 +608,8 @@ function Shows() {
                                             visible={roomsMenuVisible}
                                             interactive
                                             onClickOutside={() => setRoomsMenuVisible(false)}
-                                            offset={[0, -346]}
+                                            offset={[0, 0]}
+                                            placement="bottom"
                                             render={(attrs) => (
                                                 <ul
                                                     className={`border border-primary rounded-lg p-2 max-h-[300px] w-[384px] overflow-y-scroll no-scrollbar bg-background ${

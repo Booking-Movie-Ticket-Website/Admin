@@ -586,7 +586,8 @@ function Movies() {
                                             interactive
                                             onClickOutside={() => setActiveVisible(!activeVisible)}
                                             visible={activeVisible}
-                                            offset={[0, -149]}
+                                            offset={[0, 0]}
+                                            placement="bottom"
                                             render={(attrs) => (
                                                 <div
                                                     {...attrs}

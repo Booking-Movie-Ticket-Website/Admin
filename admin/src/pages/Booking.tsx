@@ -222,7 +222,8 @@ function Booking() {
                                             interactive
                                             onClickOutside={() => setStatusVisible(!statusVisible)}
                                             visible={statusVisible}
-                                            offset={[0, -237]}
+                                            offset={[0, 0]}
+                                            placement="bottom"
                                             render={(attrs) => (
                                                 <div
                                                     {...attrs}

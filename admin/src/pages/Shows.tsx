@@ -629,7 +629,12 @@ function Shows() {
                                                                         : ""
                                                                 }`}
                                                             >
-                                                                {room.name} - {room.type}
+                                                                {room.name} - {room.type} -{" "}
+                                                                {
+                                                                    theatersData?.filter(
+                                                                        (theater) => theater.id === room.theaterId
+                                                                    )[0].name
+                                                                }
                                                             </li>
                                                         ))}
                                                 </ul>

@@ -129,25 +129,35 @@ function Shows() {
                     }
                 });
 
+                const comingSoonMoviesResponse = await axios.get("/movies?page=1&take=20&filterMovies=COMING_SOON", {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
+                    }
+                });
+
                 const moviesResponse = [
                     ...nowPlayingMoviesResponse.data.data,
                     ...topFeaturedMoviesResponse.data.data,
                     ...bannerMoviesResponse.data.data
                 ];
 
-                const uniqueMovies = Array.from(
-                    moviesResponse
-                        .reduce((uniqueMap, movie) => {
-                            uniqueMap.set(movie.id, movie);
-                            return uniqueMap;
-                        }, new Map())
-                        .values()
+                const filteredMovies = moviesResponse.filter(
+                    (movie) =>
+                        !comingSoonMoviesResponse.data.data.some(
+                            (comingSoonMovie: { id: string }) => comingSoonMovie.id === movie.id
+                        )
                 );
 
-                const filteredMovies = uniqueMovies.filter((movie) =>
-                    showsResponse.data.data.some((show) => show.movieId === movie.id)
-                );
-                setMoviesData(filteredMovies);
+                const uniqueMovies = filteredMovies.filter((movie, index) => {
+                    return (
+                        index ===
+                        moviesResponse.findIndex((obj) => {
+                            return obj.id === movie.id;
+                        })
+                    );
+                });
+                setMoviesData(uniqueMovies);
 
                 const theatersResponse = await axios.get("/theaters?page=1&take=20", {
                     headers: { "Content-Type": "application/json" }

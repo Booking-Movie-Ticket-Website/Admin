@@ -219,6 +219,49 @@ function Sidebar() {
                         </>
                     )}
                 </NavLink>
+                <NavLink
+                    to="/users"
+                    className="flex items-center group text-disabled hover:text-white rounded-xl py-3 px-4"
+                >
+                    {({ isActive }) => (
+                        <>
+                            <i className="flex flex-start mr-2 w-[26px] items-center h-[26px]">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 256 256"
+                                    width={26}
+                                    height={26}
+                                    id="actors"
+                                >
+                                    <rect width="24" height="24" fill="none"></rect>
+                                    <circle
+                                        cx="88"
+                                        cy="108"
+                                        r="52"
+                                        fill="none"
+                                        className={`${
+                                            isActive ? "stroke-white" : "stroke-disabled"
+                                        } group-hover:stroke-white`}
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="12"
+                                    ></circle>
+                                    <path
+                                        fill="none"
+                                        className={`${
+                                            isActive ? "stroke-white" : "stroke-disabled"
+                                        } group-hover:stroke-white`}
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="12"
+                                        d="M155.41251 57.937A52.00595 52.00595 0 1 1 169.52209 160M15.99613 197.39669a88.01736 88.01736 0 0 1 144.00452-.00549M169.52209 160a87.89491 87.89491 0 0 1 72.00032 37.3912"
+                                    ></path>
+                                </svg>
+                            </i>
+                            Users
+                        </>
+                    )}
+                </NavLink>
             </div>
         </div>
     );

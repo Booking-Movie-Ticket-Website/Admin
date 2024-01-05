@@ -18,6 +18,7 @@ import Shows from "./pages/Shows";
 import Show from "./pages/Show";
 import Bookings from "./pages/Bookings";
 import Booking from "./pages/Booking";
+import Users from "./pages/Users";
 
 function App() {
     const root = document.querySelector("#root");
@@ -56,6 +57,7 @@ function App() {
                     <Route path="/shows/:id" element={<Show />} />
                     <Route path="/bookings" element={<Bookings />} />
                     <Route path="bookings/:id" element={<Booking />} />
+                    <Route path="/users" element={<Users />} />
                 </Route>
             </Route>
         </Routes>

@@ -129,27 +129,13 @@ function Shows() {
                     }
                 });
 
-                const comingSoonMoviesResponse = await axios.get("/movies?page=1&take=20&filterMovies=COMING_SOON", {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")!).data.accessToken}`
-                    }
-                });
-
                 const moviesResponse = [
                     ...nowPlayingMoviesResponse.data.data,
                     ...topFeaturedMoviesResponse.data.data,
                     ...bannerMoviesResponse.data.data
                 ];
 
-                const filteredMovies = moviesResponse.filter(
-                    (movie) =>
-                        !comingSoonMoviesResponse.data.data.some(
-                            (comingSoonMovie: { id: string }) => comingSoonMovie.id === movie.id
-                        )
-                );
-
-                const uniqueMovies = filteredMovies.filter((movie, index) => {
+                const uniqueMovies = moviesResponse.filter((movie, index) => {
                     return (
                         index ===
                         moviesResponse.findIndex((obj) => {

@@ -172,6 +172,7 @@ function Shows() {
                             interactive
                             onClickOutside={() => setCategoriesMenuVisible(false)}
                             offset={[0, 0]}
+                            placement="bottom"
                             render={(attrs) => (
                                 <div
                                     {...attrs}
@@ -235,6 +236,7 @@ function Shows() {
                             interactive
                             onClickOutside={() => setMovieFilteringVisible(false)}
                             offset={[0, 0]}
+                            placement="bottom"
                             render={(attrs) => (
                                 <div
                                     {...attrs}
@@ -305,6 +307,7 @@ function Shows() {
                             interactive
                             onClickOutside={() => setTheaterFilteringVisible(false)}
                             offset={[0, 0]}
+                            placement="bottom"
                             render={(attrs) => (
                                 <div
                                     {...attrs}

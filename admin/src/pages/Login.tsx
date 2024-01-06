@@ -39,7 +39,7 @@ const LoginForm: React.FC = () => {
             .then(() => {
                 toast("Login successfully!");
                 const timer = setTimeout(() => {
-                    navigate("/");
+                    navigate("/movies");
                     window.location.reload();
                 }, 2000);
                 return () => clearTimeout(timer);

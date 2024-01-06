@@ -499,7 +499,7 @@ function Movies() {
                                             type="text"
                                             id="director"
                                             {...register("director")}
-                                            placeholder="Ex: United States, France, . . ."
+                                            placeholder="Ex: Christopher Nolan . . ."
                                             className="bg-[rgba(141,124,221,0.1)] text-sm focus:outline-primary focus:outline focus:outline-1 outline outline-blue outline-1 text-white px-4 py-3 rounded-lg placeholder:text-disabled"
                                         />
                                         {<span className="text-deepRed">{errors.director?.message}</span>}

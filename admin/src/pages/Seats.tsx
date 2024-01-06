@@ -418,7 +418,7 @@ const Seats: React.FC<Props> = ({ id }) => {
                                         className="py-3 px-8 mt-3 text-base font-semibold rounded-lg border-blue border hover:border-primary hover:bg-primary"
                                         type="submit"
                                     >
-                                        Create a seat
+                                        Create seats
                                     </button>
                                 </form>
                             </div>

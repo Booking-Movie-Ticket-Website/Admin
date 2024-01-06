@@ -113,7 +113,8 @@ const RoomDeleting: React.FC<Props> = ({ rooms }) => {
                                             visible={roomsMenuVisible}
                                             interactive
                                             onClickOutside={() => setRoomsMenuVisible(false)}
-                                            offset={[0, -171]}
+                                            offset={[0, 0]}
+                                            placement="bottom"
                                             render={(attrs) => (
                                                 <ul
                                                     className={`border border-primary w-[400px] rounded-lg p-2 max-h-[300px] overflow-y-scroll no-scrollbar bg-background ${
